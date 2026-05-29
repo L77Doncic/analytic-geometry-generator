@@ -38,6 +38,7 @@ from interactive_generator import (
     generate_polar_dynamic,
 )
 from diagram_renderer import DiagramRenderer
+from latex_render import latex_to_unicode, render_problem_text
 
 # ==================== DESIGN TOKENS (DESIGN.md) ====================
 # Warm cream + coral palette
@@ -393,14 +394,20 @@ class GeometryTUI(App):
             renderer.render(problem, img_path)
 
             # 构建消息列表（纯数据，不涉及 UI）
+            # 将 LaTeX 渲染为 Unicode 用于终端显示
+            problem_text = render_problem_text(problem.problem_latex)
+            solution_text = render_problem_text(problem.solution_latex)
+
             messages = []
             messages.append(Static(f"  ━━━ {problem.title} ━━━", classes="highlight"))
             messages.append(Static(f"\n  【题干】", classes="highlight"))
-            for line in problem.problem_latex.split("\n"):
-                messages.append(Static(f"  {line}", classes="bot-msg"))
+            for line in problem_text.split("\n"):
+                if line.strip():
+                    messages.append(Static(f"  {line}", classes="bot-msg"))
             messages.append(Static(f"\n  【解答】", classes="highlight"))
-            for line in problem.solution_latex.split("\n"):
-                messages.append(Static(f"  {line}", classes="bot-msg"))
+            for line in solution_text.split("\n"):
+                if line.strip():
+                    messages.append(Static(f"  {line}", classes="bot-msg"))
             messages.append(Static(
                 f"\n  ✓ 配图已保存: {img_path}", classes="success"))
 
