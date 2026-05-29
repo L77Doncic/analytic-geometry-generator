@@ -1,181 +1,116 @@
 # 解析几何题目生成系统
 
-## 项目简介
-
-这是一个基于数学参数的动态解析几何题目生成系统，能够根据用户指定的知识点与难度等级，自动生成格式严谨的解析几何题目，并配以精确的几何图形。
+> 基于数学参数的动态解析几何题目生成系统，支持 TUI 交互界面、精确配图渲染和 LaTeX 输出。
 
 ## 功能特性
 
-### 支持的知识点
+- **动态生成**：用户指定知识点、参数、题型，自动生成题目
+- **自然语言输入**：TUI 中直接输入「椭圆 a=5 b=3 竞赛」即可
+- **难度自动路由**：说"竞赛"/"压轴"/"难"自动选高难度题型
+- **精确配图**：Matplotlib 渲染，1000 采样点，参数严格一致
+- **LaTeX 渲染**：终端中 Unicode 符号显示分数、根号、上下标
+- **可拖动分栏**：TUI 侧边栏和对话区可自由拖动调整大小
+- **时间戳输出**：每次生成自动创建 `Question_YYYYMMDD_HHMMSS/` 目录
 
-| 知识点 | 基础 (Level 1) | 进阶 (Level 2) | 竞赛 (Level 3) |
-|--------|---------------|---------------|---------------|
-| 椭圆 | 标准方程、焦点、顶点 | 焦点弦长、三角形面积 | 焦点三角形、离心率 |
-| 双曲线 | 标准方程、渐近线 | 焦点弦 | 焦点三角形面积 |
-| 抛物线 | 标准方程、焦点、准线 | 焦点弦 | 焦点弦性质证明 |
+## 支持的知识点与题型
+
+| 知识点 | 基础题 | 进阶题 | 竞赛/压轴题 |
+|--------|--------|--------|-------------|
+| 椭圆 | 标准方程、焦点 | 焦点弦 | 定点证明、面积最值、离心率范围、切线/极点极线、第三定义 |
+| 双曲线 | 标准方程、渐近线 | 焦点弦 | 渐近线平行弦、焦点三角形面积 |
+| 抛物线 | 标准方程、焦点 | 焦点弦 | 阿基米德三角形、定点证明 |
 | 极坐标 | 坐标互化 | 直线与圆 | 圆锥曲线极坐标方程 |
 
-### 核心特性
-
-- **数学严谨性**：所有生成的题目都有明确的解析解，保证可解性
-- **精确配图**：Matplotlib渲染，所有关键点、直线、曲线位置与数学参数严格一致
-- **LaTeX输出**：标准数学排版格式，便于教学使用
-- **自动生成**：无需人工干预，一键生成完整题目
-
-## 项目结构
-
-```
-analytic_geometry_generator/
-├── main.py                 # 主程序入口
-├── problem_generator.py    # 题目生成引擎
-├── diagram_renderer.py     # 配图渲染器
-├── create_ppt.py          # PPT演示文稿创建
-├── README.md              # 项目说明文档
-└── output/                # 输出目录
-    ├── 椭圆_difficulty1.png
-    ├── 椭圆_difficulty2.png
-    ├── 椭圆_difficulty3.png
-    ├── 双曲线_difficulty1.png
-    ├── ...
-    └── 解析几何题目生成系统.pptx
-```
+**共 13 种题型**，覆盖高考压轴和数学竞赛难度。
 
 ## 快速开始
 
 ### 环境要求
 
-- Python 3.8+
-- matplotlib
-- numpy
-- python-pptx
+- Python 3.10+
 
 ### 安装依赖
 
 ```bash
-pip install matplotlib numpy python-pptx
+pip install numpy matplotlib textual rich python-pptx
 ```
 
-### 运行程序
+### 启动 TUI
 
 ```bash
-cd /root/analytic_geometry_generator
-python3 main.py
+python3 run.py
+# 或直接
+python3 tui_app.py
 ```
 
-### 使用示例
+### 命令行模式
 
-```python
-from problem_generator import ProblemGenerator
-from diagram_renderer import DiagramRenderer
+```bash
+# 指定参数生成
+python3 run.py --cli --topic ellipse --a 5 --b 3 --type chord --k 1
 
-# 初始化
-generator = ProblemGenerator(seed=42)
-renderer = DiagramRenderer()
-
-# 生成椭圆基础题
-problem = generator.generate("ellipse", 1)
-
-# 打印题干
-print(problem.problem_latex)
-
-# 渲染配图
-renderer.render(problem, "output/ellipse.png")
+# 交互式模式
+python3 run.py --interactive
 ```
 
-## 系统架构
+### 输入示例
 
-### 模块划分
-
-1. **ProblemGenerator（题目生成器）**
-   - 椭圆题目生成（3个难度）
-   - 双曲线题目生成（3个难度）
-   - 抛物线题目生成（3个难度）
-   - 极坐标题目生成（3个难度）
-
-2. **DiagramRenderer（配图渲染器）**
-   - 坐标系建立（网格、刻度、箭头）
-   - 圆锥曲线绘制（椭圆、双曲线、抛物线）
-   - 关键点/线标注
-   - 图形导出（PNG格式）
-
-### 数据结构
-
-#### ConicParams（圆锥曲线参数）
-
-```python
-@dataclass
-class ConicParams:
-    center: Tuple[float, float]  # 中心点坐标
-    a: float                      # 半长轴/半实轴
-    b: float                      # 半短轴/半虚轴
-    c: float                      # 半焦距
-    e: float                      # 离心率
-```
-
-#### Problem（题目对象）
-
-```python
-@dataclass
-class Problem:
-    title: str                    # 题目标题
-    topic: str                    # 知识点
-    difficulty: int               # 难度等级 (1-3)
-    problem_latex: str            # LaTeX格式题干
-    solution_latex: str           # LaTeX格式解答
-    conic_params: ConicParams     # 圆锥曲线参数
-    points: List[Point]           # 关键点列表
-    lines: List[Line]             # 关键直线列表
-    conic_type: str               # 曲线类型
-    answer: str                   # 最终答案
-```
-
-## 核心算法
-
-### 题目生成流程
-
-1. **参数采样**：在合理范围内随机生成几何参数
-2. **参数推导**：计算 c = √(a²±b²), e = c/a 等派生参数
-3. **几何对象构造**：生成焦点、顶点、渐近线等
-4. **交点计算**：联立方程求解弦与曲线的交点
-5. **题干生成**：将参数代入LaTeX模板
-6. **解答推导**：自动计算并生成完整解答过程
-
-### 配图渲染流程
-
-1. **坐标系建立**：设置坐标轴范围、网格、刻度、箭头
-2. **曲线绘制**：根据参数方程精确绘制椭圆/双曲线/抛物线
-3. **直线绘制**：根据直线方程 ax+by+c=0 绘制
-4. **点标注**：在计算得到的精确位置绘制关键点
-5. **标签渲染**：添加 LaTeX 格式的点标签
-6. **图形导出**：保存为高分辨率 PNG
-
-## 输出示例
-
-### 题干示例（椭圆基础题）
+在 TUI 中直接输入：
 
 ```
-已知椭圆 $C$ 的中心在原点，焦点在 $x$ 轴上，长轴长为 $10$，短轴长为 $2$。
-
-(1) 求椭圆 $C$ 的标准方程；
-(2) 求椭圆 $C$ 的焦点坐标和离心率。
+椭圆 a=5 b=3              # 椭圆基础题（指定参数）
+椭圆 竞赛                  # 椭圆高难度题（自动随机参数）
+双曲线 a=3 b=4 基础        # 双曲线基础题
+抛物线 p=4 弦长 k=1        # 抛物线焦点弦
+极坐标 r=3                 # 极坐标基础题
+random                     # 随机生成
 ```
 
-### 配图说明
+**参数和题型均可省略**，省略后自动随机生成。
 
-- **蓝色曲线**：圆锥曲线
-- **红色直线**：关键直线（弦、切线等）
-- **紫色虚线**：渐近线（双曲线）
-- **绿色点划线**：准线（抛物线）
-- **金色点**：关键点（焦点、顶点等）
+## 项目结构
 
-## 扩展方向
+```
+analytic_geometry_generator/
+├── run.py                     # 统一入口 (TUI/CLI)
+├── tui_app.py                 # Textual TUI 交互界面
+├── interactive_generator.py   # 动态题目生成 (用户指定参数)
+├── problem_generator.py       # 核心题目生成引擎
+├── diagram_renderer.py        # Matplotlib 配图渲染引擎
+├── latex_render.py            # LaTeX → Unicode 终端渲染
+├── main.py                    # 全量生成演示
+├── build_exe.py               # PyInstaller .exe 构建
+├── create_ppt.py              # PPT 演示文稿生成
+├── create_defense_ppt.py      # 答辩 PPT 生成
+├── README.md                  # 项目说明
+├── LICENSE                    # MIT 开源协议
+├── DESIGN.md                  # Anthropic 设计规范参考
+├── 技术原理说明文档.md          # 技术原理文档
+└── output/                    # 输出目录 (运行时生成)
+    └── Question_YYYYMMDD_HHMMSS/
+        ├── diagram.png        # 精确配图
+        ├── problem.tex        # LaTeX 题干
+        ├── solution.tex       # LaTeX 解答
+        └── problem.txt        # 纯文本版
+```
 
-- 添加更多知识点：圆、参数方程、直线方程等
-- 支持自定义难度：更细粒度的难度控制
-- 题目数据库：将生成的题目存储到数据库
-- Web界面：开发在线题目生成平台
-- TikZ输出：支持LaTeX TikZ绘图代码导出
-- 智能组卷：根据知识点覆盖率自动组卷
+## 技术栈
+
+| 组件 | 技术 |
+|------|------|
+| 语言 | Python 3.12 |
+| 数值计算 | NumPy |
+| 绘图 | Matplotlib |
+| TUI 框架 | Textual + Rich |
+| 数学渲染 | LaTeX → Unicode |
+| 打包 | PyInstaller (.exe) |
+
+## 构建 .exe
+
+```bash
+pip install pyinstaller
+python3 build_exe.py
+```
 
 ## 许可证
 

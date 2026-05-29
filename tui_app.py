@@ -29,6 +29,7 @@ class Divider(Static):
 from textual.reactive import reactive
 from textual.message import Message
 from textual import work
+from textual.events import MouseDown, MouseMove, MouseUp
 
 # Import our problem generators
 from interactive_generator import (
@@ -39,6 +40,35 @@ from interactive_generator import (
 )
 from diagram_renderer import DiagramRenderer
 from latex_render import latex_to_unicode, render_problem_text
+
+
+# ==================== DRAGGABLE SPLIT BAR ====================
+
+class SplitBar(Static):
+    """可拖动的分割条"""
+    is_dragging = reactive(False)
+
+    def __init__(self):
+        super().__init__("  ", classes="split-bar")
+
+    def on_mouse_down(self, event: MouseDown):
+        self.is_dragging = True
+        self.capture_mouse()
+
+    def on_mouse_move(self, event: MouseMove):
+        if self.is_dragging:
+            self.post_message(SplitBarDragged(event.screen_x))
+
+    def on_mouse_up(self, event: MouseUp):
+        self.is_dragging = False
+        self.release_mouse()
+
+
+class SplitBarDragged(Message):
+    """分割条被拖动的消息"""
+    def __init__(self, screen_x: int):
+        super().__init__()
+        self.screen_x = screen_x
 
 # ==================== DESIGN TOKENS (DESIGN.md) ====================
 # Warm cream + coral palette
@@ -180,9 +210,9 @@ class GeometryTUI(App):
 
     #sidebar {{
         width: 28%;
-        min-width: 28;
+        min-width: 15;
+        max-width: 50;
         background: {SURFACE_CARD};
-        border-right: solid {HAIRLINE};
         padding: 1 2;
     }}
 
@@ -194,8 +224,22 @@ class GeometryTUI(App):
         padding-top: 1;
     }}
 
+    .split-bar {{
+        width: 1;
+        background: {HAIRLINE};
+        min-height: 100%;
+    }}
+
+    .split-bar:hover {{
+        background: {PRIMARY};
+    }}
+
+    .split-bar.dragging {{
+        background: {PRIMARY};
+    }}
+
     #main {{
-        width: 72%;
+        width: 1fr;
     }}
 
     #chat {{
@@ -283,6 +327,10 @@ class GeometryTUI(App):
         Binding("ctrl+l", "clear", "清空对话"),
         Binding("ctrl+h", "help", "帮助"),
         Binding("ctrl+s", "save", "保存当前题目"),
+        Binding("ctrl+up", "scroll_chat_up", "上滑", show=False),
+        Binding("ctrl+down", "scroll_chat_down", "下滑", show=False),
+        Binding("pageup", "scroll_chat_page_up", "上翻页", show=False),
+        Binding("pagedown", "scroll_chat_page_down", "下翻页", show=False),
     ]
 
     # ---- 响应式状态 ----
@@ -294,35 +342,62 @@ class GeometryTUI(App):
         yield Header(show_clock=True, name="解析几何题目生成器")
 
         with Horizontal():
-            # 左侧边栏
-            with Vertical(id="sidebar"):
+            # 左侧边栏（可滚动）
+            with ScrollableContainer(id="sidebar"):
                 yield Static("📐 解析几何生成器", id="sidebar-title")
                 yield Divider()
-                yield Static("快捷命令", classes="muted")
-                yield Static("  椭圆 a=5 b=3", classes="help-item")
-                yield Static("  双曲线 a=3 b=4 基础", classes="help-item")
-                yield Static("  抛物线 p=4 弦长", classes="help-item")
-                yield Static("  极坐标 r=3 直线与圆", classes="help-item")
+                yield Static("输入格式", classes="muted")
+                yield Static("  [知识点] [参数] [题型]", classes="help-cmd")
+                yield Static("  知识点：必填", classes="help-item")
+                yield Static("  参数：可省略→随机", classes="help-item")
+                yield Static("  题型：可省略→basic", classes="help-item")
                 yield Divider()
-                yield Static("参数说明", classes="muted")
+                yield Static("示例", classes="muted")
+                yield Static("  椭圆 a=5 b=3", classes="help-item")
+                yield Static("  椭圆 竞赛", classes="help-item")
+                yield Static("  双曲线 a=3 b=4", classes="help-item")
+                yield Static("  抛物线 p=4 弦长 k=1", classes="help-item")
+                yield Static("  极坐标 r=3", classes="help-item")
+                yield Static("  random（随机生成）", classes="help-item")
+                yield Divider()
+                yield Static("知识点", classes="muted")
+                yield Static("  椭圆 / ellipse", classes="help-item")
+                yield Static("  双曲线 / hyperbola", classes="help-item")
+                yield Static("  抛物线 / parabola", classes="help-item")
+                yield Static("  极坐标 / polar", classes="help-item")
+                yield Divider()
+                yield Static("参数（可省略）", classes="muted")
                 yield Static("  a — 半长轴/半实轴", classes="help-item")
                 yield Static("  b — 半短轴/半虚轴", classes="help-item")
                 yield Static("  p — 抛物线焦距参数", classes="help-item")
                 yield Static("  r — 极坐标圆半径", classes="help-item")
                 yield Static("  k — 弦斜率", classes="help-item")
                 yield Divider()
-                yield Static("题型", classes="muted")
-                yield Static("  basic — 基础题", classes="help-item")
+                yield Static("题型（可省略）", classes="muted")
+                yield Static("  基础/进阶/竞赛", classes="help-item")
+                yield Static("  或以下具体题型：", classes="help-item")
+                yield Static("  basic — 标准方程", classes="help-item")
                 yield Static("  chord — 焦点弦", classes="help-item")
                 yield Static("  focus_triangle — 焦点三角形", classes="help-item")
+                yield Static("  fixed_point — 定点证明", classes="help-item")
+                yield Static("  area_opt — 面积最值", classes="help-item")
+                yield Static("  ecc_range — 离心率范围", classes="help-item")
+                yield Static("  tangent — 切线/极点极线", classes="help-item")
+                yield Static("  third_def — 第三定义", classes="help-item")
+                yield Static("  archimedes — 阿基米德三角形", classes="help-item")
+                yield Static("  asymptote_angle — 渐近线", classes="help-item")
                 yield Static("  line_circle — 直线与圆", classes="help-item")
                 yield Static("  property — 性质证明", classes="help-item")
+                yield Static("  conic — 极坐标方程", classes="help-item")
                 yield Divider()
                 yield Static("快捷键", classes="muted")
                 yield Static("  Ctrl+Q 退出", classes="help-item")
                 yield Static("  Ctrl+L 清空", classes="help-item")
                 yield Static("  Ctrl+S 保存", classes="help-item")
                 yield Static("  Ctrl+H 帮助", classes="help-item")
+
+            # 可拖动分割条
+            yield SplitBar()
 
             # 右侧主区域
             with Vertical(id="main"):
@@ -353,6 +428,15 @@ class GeometryTUI(App):
         if event.button.id == "generate-btn":
             input_widget = self.query_one("#user-input")
             self._process_input(input_widget.value)
+
+    def on_split_bar_dragged(self, event: SplitBarDragged):
+        """分割条拖动事件 — 调整侧边栏宽度"""
+        sidebar = self.query_one("#sidebar")
+        # 计算新宽度（屏幕 x 坐标 → 百分比）
+        total_width = self.size.width
+        if total_width > 0:
+            new_pct = max(15, min(50, int(event.screen_x / total_width * 100)))
+            sidebar.styles.width = f"{new_pct}%"
 
     def _process_input(self, text: str):
         """处理用户输入"""
@@ -511,39 +595,59 @@ class GeometryTUI(App):
   ━━━ 使用帮助 ━━━
 
   输入格式：[知识点] [参数] [题型]
+  · 参数和题型均可省略，省略后自动随机生成
+  · 说"竞赛"/"压轴"/"难"自动选高难度题型
 
-  知识点：
-    椭圆 / ellipse        双曲线 / hyperbola
-    抛物线 / parabola     极坐标 / polar
+  ── 知识点 ──
+    椭圆 / ellipse         双曲线 / hyperbola
+    抛物线 / parabola      极坐标 / polar
 
-  参数：
-    a=数值   半长轴/半实轴
-    b=数值   半短轴/半虚轴
-    p=数值   抛物线焦距参数
-    r=数值   极坐标圆半径
-    k=数值   弦斜率
+  ── 参数（均可省略） ──
+    a=数值   半长轴/半实轴    （椭圆/双曲线）
+    b=数值   半短轴/半虚轴    （椭圆/双曲线）
+    p=数值   焦距参数         （抛物线）
+    r=数值   圆半径           （极坐标）
+    k=数值   弦斜率           （焦点弦题型）
 
-  题型：
-    basic         基础题（标准方程）
-    chord         焦点弦问题
-    focus_triangle 焦点三角形（竞赛）
-    line_circle   直线与圆（极坐标）
-    property      性质证明（抛物线）
+  ── 题型（均可省略，默认 basic） ──
+    基础题型：
+      basic           标准方程、焦点、顶点
+      chord           焦点弦问题
+      focus_triangle  焦点三角形
+      line_circle     直线与圆（极坐标）
 
-  示例：
-    椭圆 a=5 b=3
-    双曲线 a=3 b=4 基础
-    抛物线 p=4 弦长 k=1
-    极坐标 r=3 直线与圆
-    ellipse a=5 b=3 chord
-    hyperbola basic
-    random （随机生成）
+    高考压轴/竞赛题型：
+      fixed_point     定点证明（椭圆/抛物线）
+      area_opt        面积最值（椭圆/双曲线）
+      ecc_range       离心率范围（椭圆）
+      tangent         切线/极点极线（椭圆）
+      third_def       第三定义（椭圆）
+      archimedes      阿基米德三角形（抛物线）
+      asymptote_angle 渐近线（双曲线）
+      property        性质证明（抛物线）
+      conic           极坐标方程（极坐标）
 
-  快捷键：
-    Ctrl+Q  退出
-    Ctrl+L  清空对话
-    Ctrl+S  保存当前题目
-    Ctrl+H  帮助
+  ── 难度快捷方式 ──
+    基础 / basic      → 基础题
+    进阶 / 中等       → 进阶题
+    竞赛 / 压轴 / 难  → 自动选高难度题型
+
+  ── 示例 ──
+    椭圆 a=5 b=3           基础题（指定参数）
+    椭圆 竞赛              压轴题（随机参数）
+    椭圆 a=5 定点           定点证明题
+    双曲线 a=3 b=4 基础     双曲线基础题
+    抛物线 p=4 弦长 k=1    焦点弦题
+    极坐标 r=3             极坐标基础题
+    random                 随机生成一道题
+
+  ── 快捷键 ──
+    Ctrl+Q       退出
+    Ctrl+L       清空对话
+    Ctrl+S       保存当前题目
+    Ctrl+H       帮助
+    Ctrl+↑/↓     滚动对话
+    PageUp/Down  翻页
 """
         chat.mount(Static(help_text, classes="bot-msg"))
         chat.scroll_end(animate=False)
@@ -580,6 +684,37 @@ class GeometryTUI(App):
         chat = self.query_one("#chat")
         chat.mount(Static(f"  ✓ 已保存 LaTeX: {tex_path}", classes="success"))
         chat.scroll_end(animate=False)
+
+    # ---- 滚动控制 ----
+
+    def action_scroll_chat_up(self):
+        """向上滚动对话"""
+        chat = self.query_one("#chat")
+        chat.scroll_up(amount=3)
+
+    def action_scroll_chat_down(self):
+        """向下滚动对话"""
+        chat = self.query_one("#chat")
+        chat.scroll_down(amount=3)
+
+    def action_scroll_chat_page_up(self):
+        """向上翻页"""
+        chat = self.query_one("#chat")
+        chat.scroll_up(page=True)
+
+    def action_scroll_chat_page_down(self):
+        """向下翻页"""
+        chat = self.query_one("#chat")
+        chat.scroll_down(page=True)
+
+    def on_key(self, event):
+        """处理鼠标滚轮事件"""
+        chat = self.query_one("#chat")
+        # 鼠标滚轮支持
+        if event.key == "ctrl+up":
+            chat.scroll_up(amount=3)
+        elif event.key == "ctrl+down":
+            chat.scroll_down(amount=3)
 
 
 # ==================== MAIN ====================
