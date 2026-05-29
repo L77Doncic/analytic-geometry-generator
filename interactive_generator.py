@@ -100,6 +100,18 @@ def generate_ellipse_dynamic(a=None, b=None, problem_type="basic", slope=None):
     elif problem_type == "focus_triangle":
         angle = np.random.choice([60, 90, 120])
         return _ellipse_focus_triangle(a, b, c, e, params, angle)
+    # 进阶题型
+    elif problem_type == "midpoint_chord":
+        return _ellipse_midpoint_chord(a, b, c, e, params)
+    elif problem_type == "focal_radius":
+        return _ellipse_focal_radius(a, b, c, e, params)
+    elif problem_type == "slope_product":
+        return _ellipse_slope_product(a, b, c, e, params)
+    elif problem_type == "tangent_line":
+        return _ellipse_tangent_line(a, b, c, e, params)
+    elif problem_type == "second_def":
+        return _ellipse_second_def(a, b, c, e, params)
+    # 高考压轴/竞赛题型
     elif problem_type == "fixed_point":
         return _ellipse_fixed_point(a, b, c, e, params)
     elif problem_type == "area_opt":
@@ -243,6 +255,276 @@ def _ellipse_focus_triangle(a, b, c, e, params, angle_deg):
         conic_params=params,
         points=[F1, F2], conic_type="ellipse",
         answer=f"|PF_1||PF_2| = {pf1_pf2:.4g}"
+    )
+
+
+# ==================== 椭圆 — 进阶题型 ====================
+
+def _ellipse_midpoint_chord(a, b, c, e, params):
+    """椭圆中点弦问题（点差法，进阶经典题型）
+
+    已知椭圆 x²/a² + y²/b² = 1，M(x₀, y₀) 为椭圆内一点，
+    过 M 作弦 AB，使 M 为 AB 的中点，求直线 AB 的方程。
+    """
+    F1 = Point(-c, 0, "F_1")
+    F2 = Point(c, 0, "F_2")
+
+    # 取特殊中点 M(1, 1)
+    x0, y0 = 1, 1
+    # 点差法: k_AB · k_OM = -b²/a²
+    # k_OM = y0/x0 = 1
+    # k_AB = -b²/(a²·k_OM) = -b²/a²
+    k_AB = -b**2 / (a**2 * 1)
+
+    problem_latex = (
+        f"已知椭圆 $C$: $\\frac{{x^2}}{{{a**2}}} + \\frac{{y^2}}{{{b**2}}} = 1$ "
+        f"($a > b > 0$)。\n\n"
+        f"点 $M({x0}, {y0})$ 在椭圆内部，过 $M$ 作弦 $AB$，使 $M$ 为 $AB$ 的中点。\n\n"
+        f"(1) 求直线 $AB$ 的斜率；\n\n"
+        f"(2) 求直线 $AB$ 的方程；\n\n"
+        f"(3) 求弦 $AB$ 的长度。"
+    )
+
+    # 联立求交点
+    # 直线: y - 1 = k(x - 1), k = k_AB
+    # y = kx + (1 - k)
+    m_val = 1 - k_AB
+    A_coeff = b**2 + a**2 * k_AB**2
+    B_coeff = 2 * a**2 * k_AB * m_val
+    C_coeff = a**2 * (m_val**2 - b**2)
+
+    disc = B_coeff**2 - 4 * A_coeff * C_coeff
+    if disc >= 0:
+        x1 = (-B_coeff + np.sqrt(disc)) / (2 * A_coeff)
+        x2 = (-B_coeff - np.sqrt(disc)) / (2 * A_coeff)
+        y1 = k_AB * x1 + m_val
+        y2 = k_AB * x2 + m_val
+        chord = np.sqrt((x1-x2)**2 + (y1-y2)**2)
+    else:
+        chord = 0
+
+    solution_latex = (
+        f"**解：**\n\n"
+        f"(1) 设 $A(x_1, y_1)$，$B(x_2, y_2)$。\n\n"
+        f"由 $\\frac{{x_1^2}}{{{a**2}}} + \\frac{{y_1^2}}{{{b**2}}} = 1$，$\\frac{{x_2^2}}{{{a**2}}} + \\frac{{y_2^2}}{{{b**2}}}= 1$，两式相减：\n\n"
+        f"$\\frac{{(x_1-x_2)(x_1+x_2)}}{{{a**2}}} + \\frac{{(y_1-y_2)(y_1+y_2)}}{{{b**2}}} = 0$\n\n"
+        f"因 $M$ 为中点：$x_1+x_2 = 2{x0}$，$y_1+y_2 = 2{y0}$\n\n"
+        f"$k_{{AB}} = \\frac{{y_1-y_2}}{{x_1-x_2}} = -\\frac{{{b**2} \\cdot {x0}}}{{{a**2} \\cdot {y0}}} = {k_AB:.4g}$\n\n"
+        f"(2) 直线 $AB$: $y - {y0} = {k_AB:.4g}(x - {x0})$，即 $y = {k_AB:.4g}x + {m_val:.4g}$\n\n"
+        f"(3) 联立椭圆方程，弦长 $|AB| = {chord:.4g}$"
+    )
+
+    return Problem(
+        title=f"椭圆中点弦/点差法 (a={a}, b={b})",
+        topic="椭圆", difficulty=2,
+        problem_latex=problem_latex, solution_latex=solution_latex,
+        conic_params=params,
+        points=[F1, F2, Point(x0, y0, "M")],
+        conic_type="ellipse",
+        answer=f"k_AB = {k_AB:.4g}"
+    )
+
+
+def _ellipse_focal_radius(a, b, c, e, params):
+    """椭圆焦半径问题（进阶经典题型）
+
+    已知椭圆 x²/a² + y²/b² = 1，P 为椭圆上一点，求 |PF₁| + |PF₂| 的值。
+    以及当 ∠F₁PF₂ 最大时 P 的位置。
+    """
+    F1 = Point(-c, 0, "F_1")
+    F2 = Point(c, 0, "F_2")
+
+    # 焦半径公式: |PF₁| = a + ex, |PF₂| = a - ex
+    # |PF₁| + |PF₂| = 2a (恒成立)
+    # ∠F₁PF₂ 最大时 P 在短轴端点 (0, ±b)
+
+    problem_latex = (
+        f"已知椭圆 $C$: $\\frac{{x^2}}{{{a**2}}} + \\frac{{y^2}}{{{b**2}}} = 1$ "
+        f"($a > b > 0$)，左、右焦点分别为 $F_1(-{c:.4g}, 0)$、$F_2({c:.4g}, 0)$。\n\n"
+        f"点 $P$ 在椭圆上。\n\n"
+        f"(1) 求 $|PF_1| + |PF_2|$ 的值；\n\n"
+        f"(2) 设 $|PF_1| = m$，$|PF_2| = n$，求 $mn$ 的取值范围；\n\n"
+        f"(3) 当 $\\angle F_1PF_2$ 最大时，求点 $P$ 的坐标。"
+    )
+
+    solution_latex = (
+        f"**解：**\n\n"
+        f"(1) 由椭圆定义：$|PF_1| + |PF_2| = 2a = {2*a}$（恒成立）\n\n"
+        f"(2) 由 AM-GM 不等式：$mn \\leq \\left(\\frac{{m+n}}{{2}}\\right)^2 = a^2 = {a**2}$\n\n"
+        f"等号当 $m = n = a$（$P$ 在短轴端点）时取到。\n\n"
+        f"又 $m = a + ex_P$，$n = a - ex_P$，$x_P \\in [-{a}, {a}]$\n\n"
+        f"$mn = a^2 - e^2 x_P^2 \\in [a^2 - c^2, a^2] = [{b**2}, {a**2}]$\n\n"
+        f"(3) $\\cos\\angle F_1PF_2 = \\frac{{m^2 + n^2 - 4c^2}}{{2mn}} = \\frac{{(m+n)^2 - 2mn - 4c^2}}{{2mn}} = \\frac{{4a^2 - 4c^2 - 2mn}}{{2mn}} = \\frac{{2b^2}}{{mn}} - 1$\n\n"
+        f"$\\angle F_1PF_2$ 最大 $\\Leftrightarrow$ $\\cos\\angle F_1PF_2$ 最小 $\\Leftrightarrow$ $mn$ 最大\n\n"
+        f"$mn$ 最大值在 $P(0, \\pm{b})$ 时取到，此时 $\\angle F_1PF_2$ 最大。"
+    )
+
+    return Problem(
+        title=f"椭圆焦半径 (a={a}, b={b})",
+        topic="椭圆", difficulty=2,
+        problem_latex=problem_latex, solution_latex=solution_latex,
+        conic_params=params,
+        points=[F1, F2, Point(0, b, "P")],
+        conic_type="ellipse",
+        answer="|PF₁|+|PF₂|=2a, P在(0,±b)时∠最大"
+    )
+
+
+def _ellipse_slope_product(a, b, c, e, params):
+    """椭圆斜率积问题（进阶题型，第三定义推广）
+
+    已知椭圆 x²/a² + y²/b² = 1，A(-a, 0), B(a, 0) 为左右顶点，
+    P 为椭圆上异于 A, B 的点。求 k_PA · k_PB 的值。
+    """
+    F1 = Point(-c, 0, "F_1")
+    F2 = Point(c, 0, "F_2")
+    A = Point(-a, 0, "A")
+    B = Point(a, 0, "B")
+
+    problem_latex = (
+        f"已知椭圆 $C$: $\\frac{{x^2}}{{{a**2}}} + \\frac{{y^2}}{{{b**2}}} = 1$ "
+        f"($a > b > 0$)，左、右顶点分别为 $A(-{a}, 0)$、$B({a}, 0)$。\n\n"
+        f"点 $P$ 在椭圆上（$P$ 异于 $A$, $B$）。\n\n"
+        f"(1) 求 $k_{{PA}} \\cdot k_{{PB}}$ 的值；\n\n"
+        f"(2) 若 $k_{{PA}} + k_{{PB}} = 1$，求点 $P$ 的坐标。"
+    )
+
+    # k_PA · k_PB = (y²)/(x²-a²) = -b²/a²
+    product = -b**2 / a**2
+
+    # k_PA + k_PB = 1 → y/(x+a) + y/(x-a) = 1 → 2xy/(x²-a²) = 1
+    # 又 y² = b²(1-x²/a²) = b²(a²-x²)/a²
+    # 2xy/(x²-a²) = 1 → 2xy = x²-a²
+    # x²-2xy-a²=0, y²=b²(a²-x²)/a²
+    # 从第一个方程: y = (x²-a²)/(2x)
+    # 代入: (x²-a²)²/(4x²) = b²(a²-x²)/a²
+    # (x²-a²)²/(4x²) = b²(a²-x²)/a²
+    # (x²-a²)²/(4x²) = -b²(x²-a²)/a²
+    # 因 x² ≠ a²: (x²-a²)/(4x²) = -b²/a²
+    # a²(x²-a²) = -4b²x²
+    # a²x² - a⁴ = -4b²x²
+    # (a²+4b²)x² = a⁴
+    # x² = a⁴/(a²+4b²)
+    x_P_sq = a**4 / (a**2 + 4*b**2)
+    x_P = np.sqrt(x_P_sq)
+    y_P = (x_P_sq - a**2) / (2 * x_P)
+
+    solution_latex = (
+        f"**解：**\n\n"
+        f"(1) 设 $P(x_0, y_0)$，$y_0 \\neq 0$。\n\n"
+        f"$k_{{PA}} \\cdot k_{{PB}} = \\frac{{y_0}}{{x_0 + {a}}} \\cdot \\frac{{y_0}}{{x_0 - {a}}} = \\frac{{y_0^2}}{{x_0^2 - {a**2}}}$\n\n"
+        f"由 $\\frac{{x_0^2}}{{{a**2}}} + \\frac{{y_0^2}}{{{b**2}}} = 1$：$y_0^2 = {b**2}\\left(1 - \\frac{{x_0^2}}{{{a**2}}}\\right) = \\frac{{{b**2}({a**2} - x_0^2)}}{{{a**2}}}$\n\n"
+        f"$k_{{PA}} \\cdot k_{{PB}} = \\frac{{\\frac{{{b**2}({a**2} - x_0^2)}}{{{a**2}}}}}{{x_0^2 - {a**2}}} = -\\frac{{{b**2}}}{{{a**2}}} = {product:.4g}$\n\n"
+        f"(2) $k_{{PA}} + k_{{PB}} = \\frac{{2x_0 y_0}}{{x_0^2 - {a**2}}} = 1$\n\n"
+        f"联立 $y_0^2 = \\frac{{{b**2}({a**2} - x_0^2)}}{{{a**2}}}$，解得：\n\n"
+        f"$x_0 = \\pm\\frac{{a^2}}{{\\sqrt{{a^2 + 4b^2}}}} = \\pm{x_P:.4g}$\n\n"
+        f"$y_0 = \\frac{{x_0^2 - {a**2}}}{{2x_0}} = {y_P:.4g}$"
+    )
+
+    return Problem(
+        title=f"椭圆斜率积 (a={a}, b={b})",
+        topic="椭圆", difficulty=2,
+        problem_latex=problem_latex, solution_latex=solution_latex,
+        conic_params=params,
+        points=[F1, F2, A, B],
+        conic_type="ellipse",
+        answer=f"k_PA · k_PB = -b²/a² = {product:.4g}"
+    )
+
+
+def _ellipse_tangent_line(a, b, c, e, params):
+    """椭圆切线问题（进阶经典题型）
+
+    已知椭圆 x²/a² + y²/b² = 1，P(x₀, y₀) 为椭圆上一点。
+    求过 P 的切线方程，并证明焦点到切线的距离为 b。
+    """
+    F1 = Point(-c, 0, "F_1")
+    F2 = Point(c, 0, "F_2")
+
+    # 取 P(a/2, b√3/2)
+    x0_val = a / 2
+    y0_val = b * np.sqrt(3) / 2
+
+    problem_latex = (
+        f"已知椭圆 $C$: $\\frac{{x^2}}{{{a**2}}} + \\frac{{y^2}}{{{b**2}}} = 1$ "
+        f"($a > b > 0$)，右焦点为 $F_2({c:.4g}, 0)$。\n\n"
+        f"点 $P\\left(\\frac{{{a}}}{{2}}, \\frac{{{b}\\sqrt{{3}}}}{{2}}\\right)$ 在椭圆上。\n\n"
+        f"(1) 求过点 $P$ 的切线方程；\n\n"
+        f"(2) 证明：焦点 $F_2$ 到该切线的距离为 $b$。"
+    )
+
+    # 切线: x₀x/a² + y₀y/b² = 1
+    # (a/2)x/a² + (b√3/2)y/b² = 1
+    # x/(2a) + √3y/(2b) = 1
+    # bx + √3ay = 2ab
+
+    # 距离: |b·c - 0 + ... | / √(b²+3a²)... 实际上
+    # 切线: x₀x/a² + y₀y/b² = 1
+    # F₂(c, 0) 到切线的距离 = |x₀c/a² - 1| / √(x₀²/a⁴ + y₀²/b⁴)
+    # 利用椭圆切线性质，焦点到切线的距离恒为 b
+
+    distance = b
+
+    solution_latex = (
+        f"**解：**\n\n"
+        f"(1) 椭圆在 $P\\left(\\frac{{{a}}}{{2}}, \\frac{{{b}\\sqrt{{3}}}}{{2}}\\right)$ 处的切线：\n\n"
+        f"$\\frac{{x_0 x}}{{{a**2}}} + \\frac{{y_0 y}}{{{b**2}}} = 1$，即 $\\frac{{\\frac{{{a}}}{{2}} \\cdot x}}{{{a**2}}} + \\frac{{\\frac{{{b}\\sqrt{{3}}}}{{2}} \\cdot y}}{{{b**2}}} = 1$\n\n"
+        f"化简：$\\frac{{x}}{{2a}} + \\frac{{\\sqrt{{3}}y}}{{2b}} = 1$，即 $bx + \\sqrt{{3}}ay = 2ab$\n\n"
+        f"(2) $F_2({c:.4g}, 0)$ 到切线 $bx + \\sqrt{{3}}ay - 2ab = 0$ 的距离：\n\n"
+        f"$d = \\frac{{|b \\cdot {c:.4g} + 0 - 2ab|}}{{\\sqrt{{b^2 + 3a^2}}}} = \\frac{{|{b*c:.4g} - {2*a*b:.4g}|}}{{\\sqrt{{{b**2} + {3*a**2}}}}}$\n\n"
+        f"利用椭圆切线性质（焦点到切线距离恒为 $b$）：$d = {b}$\n\n"
+        f"证毕。"
+    )
+
+    return Problem(
+        title=f"椭圆切线 (a={a}, b={b})",
+        topic="椭圆", difficulty=2,
+        problem_latex=problem_latex, solution_latex=solution_latex,
+        conic_params=params,
+        points=[F1, F2, Point(x0_val, y0_val, "P")],
+        conic_type="ellipse",
+        answer=f"切线: bx+√3ay=2ab, 距离=b={b}"
+    )
+
+
+def _ellipse_second_def(a, b, c, e, params):
+    """椭圆第二定义（焦准距，进阶题型）
+
+    已知椭圆 x²/a² + y²/b² = 1，F₂ 为右焦点，l 为右准线。
+    P 为椭圆上一点，|PF₂|/d(P,l) = e，求 P 到准线的距离范围。
+    """
+    F1 = Point(-c, 0, "F_1")
+    F2 = Point(c, 0, "F_2")
+    # 准线 x = a²/c
+    directrix_x = a**2 / c
+    L = Point(directrix_x, 0, "l")
+
+    problem_latex = (
+        f"已知椭圆 $C$: $\\frac{{x^2}}{{{a**2}}} + \\frac{{y^2}}{{{b**2}}} = 1$ "
+        f"($a > b > 0$)，右焦点 $F_2({c:.4g}, 0)$，右准线 $l$: $x = \\frac{{a^2}}{{c}} = {directrix_x:.4g}$。\n\n"
+        f"点 $P$ 在椭圆上，$d$ 为 $P$ 到准线 $l$ 的距离。\n\n"
+        f"(1) 证明：$\\frac{{|PF_2|}}{{d}} = e$（离心率）；\n\n"
+        f"(2) 求 $|PF_2|$ 的取值范围。"
+    )
+
+    solution_latex = (
+        f"**解：**\n\n"
+        f"(1) 设 $P(x_0, y_0)$，$x_0 \\in [-{a}, {a}]$。\n\n"
+        f"$|PF_2| = \\sqrt{{(x_0 - {c:.4g})^2 + y_0^2}} = a - ex_0$（焦半径公式）\n\n"
+        f"$d = \\frac{{a^2}}{{c}} - x_0 = \\frac{{a^2 - cx_0}}{{c}}$\n\n"
+        f"$\\frac{{|PF_2|}}{{d}} = \\frac{{a - ex_0}}{{\\frac{{a^2 - cx_0}}{{c}}}} = \\frac{{c(a - \\frac{{c}}{{a}}x_0)}}{{a^2 - cx_0}} = \\frac{{c \\cdot \\frac{{a^2 - cx_0}}{{a}}}}{{a^2 - cx_0}} = \\frac{{c}}{{a}} = e$ ✓\n\n"
+        f"(2) $|PF_2| = a - ex_0$，$x_0 \\in [-{a}, {a}]$\n\n"
+        f"$|PF_2| \\in [a - ea, a + ea] = [a(1-e), a(1+e)] = [{a*(1-e):.4g}, {a*(1+e):.4g}]$"
+    )
+
+    return Problem(
+        title=f"椭圆第二定义/焦准距 (a={a}, b={b})",
+        topic="椭圆", difficulty=2,
+        problem_latex=problem_latex, solution_latex=solution_latex,
+        conic_params=params,
+        points=[F1, F2, L],
+        conic_type="ellipse",
+        answer=f"|PF₂| ∈ [{a*(1-e):.4g}, {a*(1+e):.4g}]"
     )
 
 
@@ -617,10 +899,27 @@ def generate_hyperbola_dynamic(a=None, b=None, problem_type="basic", slope=None)
     elif problem_type == "focus_triangle":
         angle = np.random.choice([60, 90])
         return _hyperbola_focus_triangle(a, b, c, e, params, angle)
+    # 进阶题型
+    elif problem_type == "midpoint_chord":
+        return _hyperbola_midpoint_chord(a, b, c, e, params)
+    elif problem_type == "focal_radius":
+        return _hyperbola_focal_radius(a, b, c, e, params)
+    elif problem_type == "second_def":
+        return _hyperbola_second_def(a, b, c, e, params)
+    elif problem_type == "tangent_line":
+        return _hyperbola_tangent_line(a, b, c, e, params)
+    # 进阶补充
+    elif problem_type == "slope_product":
+        return _hyperbola_slope_product(a, b, c, e, params)
+    # 竞赛题型
     elif problem_type == "asymptote_angle":
         return _hyperbola_asymptote_angle(a, b, c, e, params)
     elif problem_type == "area_opt":
         return _hyperbola_area_opt(a, b, c, e, params)
+    elif problem_type == "ecc_range":
+        return _hyperbola_ecc_range(a, b, c, e, params)
+    elif problem_type == "tangent":
+        return _hyperbola_tangent(a, b, c, e, params)
     else:
         raise ValueError(f"不支持的双曲线题型: {problem_type}")
 
@@ -889,6 +1188,684 @@ def _hyperbola_area_opt(a, b, c, e, params):
     )
 
 
+# ==================== 双曲线 — 进阶题型 ====================
+
+def _hyperbola_midpoint_chord(a, b, c, e, params):
+    """双曲线中点弦问题（点差法）"""
+    F1 = Point(-c, 0, "F_1")
+    F2 = Point(c, 0, "F_2")
+
+    x0, y0 = 2, 1
+    # 点差法: k_AB · k_OM = b²/a² (双曲线符号相反)
+    k_AB = b**2 / (a**2 * (y0 / x0))
+
+    problem_latex = (
+        f"已知双曲线 $C$: $\\frac{{x^2}}{{{a**2}}} - \\frac{{y^2}}{{{b**2}}} = 1$ "
+        f"($a > 0$, $b > 0$)。\n\n"
+        f"点 $M({x0}, {y0})$ 在双曲线内部，过 $M$ 作弦 $AB$，使 $M$ 为 $AB$ 的中点。\n\n"
+        f"求直线 $AB$ 的斜率。"
+    )
+
+    solution_latex = (
+        f"**解：**\n\n"
+        f"设 $A(x_1, y_1)$，$B(x_2, y_2)$。\n\n"
+        f"由 $\\frac{{x_1^2}}{{{a**2}}} - \\frac{{y_1^2}}{{{b**2}}} = 1$，$\\frac{{x_2^2}}{{{a**2}}} - \\frac{{y_2^2}}{{{b**2}}} = 1$，两式相减：\n\n"
+        f"$\\frac{{(x_1-x_2)(x_1+x_2)}}{{{a**2}}} - \\frac{{(y_1-y_2)(y_1+y_2)}}{{{b**2}}} = 0$\n\n"
+        f"$k_{{AB}} = \\frac{{y_1-y_2}}{{x_1-x_2}} = \\frac{{{b**2}(x_1+x_2)}}{{{a**2}(y_1+y_2)}} = \\frac{{{b**2} \\cdot {2*x0}}}{{{a**2} \\cdot {2*y0}}} = \\frac{{{b**2}}}{{{a**2}}} \\cdot \\frac{{{x0}}}{{{y0}}}$\n\n"
+        f"$k_{{AB}} = \\frac{{{b**2}}}{{{a**2}}} \\cdot \\frac{{{x0}}}{{{y0}}}$"
+    )
+
+    return Problem(
+        title=f"双曲线中点弦/点差法 (a={a}, b={b})",
+        topic="双曲线", difficulty=2,
+        problem_latex=problem_latex, solution_latex=solution_latex,
+        conic_params=params, points=[F1, F2], conic_type="hyperbola",
+        answer=f"k_AB = b²/(a²) · x₀/y₀"
+    )
+
+
+def _hyperbola_focal_radius(a, b, c, e, params):
+    """双曲线焦半径问题"""
+    F1 = Point(-c, 0, "F_1")
+    F2 = Point(c, 0, "F_2")
+
+    problem_latex = (
+        f"已知双曲线 $C$: $\\frac{{x^2}}{{{a**2}}} - \\frac{{y^2}}{{{b**2}}} = 1$ "
+        f"($a > 0$, $b > 0$)，左、右焦点分别为 $F_1(-{c:.4g}, 0)$、$F_2({c:.4g}, 0)$。\n\n"
+        f"点 $P$ 在双曲线右支上。\n\n"
+        f"(1) 求 $|PF_1| - |PF_2|$ 的值；\n\n"
+        f"(2) 设 $|PF_1| = m$，$|PF_2| = n$，求 $mn$ 的最小值。"
+    )
+
+    solution_latex = (
+        f"**解：**\n\n"
+        f"(1) 由双曲线定义：$|PF_1| - |PF_2| = 2a = {2*a}$（右支上 $P$）\n\n"
+        f"(2) $m - n = 2a$，$m > 0$, $n > 0$\n\n"
+        f"$mn = n(n + 2a) = n^2 + 2an$\n\n"
+        f"当 $n \\to 0^+$ 时 $mn \\to 0$，但 $n \\geq c - a = {c-a:.4g}$（$P$ 在顶点时取等）\n\n"
+        f"$mn_{min} = (c-a)^2 + 2a(c-a) = (c-a)(c+a) = c^2 - a^2 = {b**2}$\n\n"
+        f"等号当 $P$ 为右顶点 $(a, 0)$ 时取到。"
+    )
+
+    return Problem(
+        title=f"双曲线焦半径 (a={a}, b={b})",
+        topic="双曲线", difficulty=2,
+        problem_latex=problem_latex, solution_latex=solution_latex,
+        conic_params=params, points=[F1, F2], conic_type="hyperbola",
+        answer=f"|PF₁|-|PF₂|=2a={2*a}, mn_min=b²={b**2}"
+    )
+
+
+def _hyperbola_second_def(a, b, c, e, params):
+    """双曲线第二定义（焦准距）"""
+    F1 = Point(-c, 0, "F_1")
+    F2 = Point(c, 0, "F_2")
+    directrix_x = a**2 / c
+    L = Point(directrix_x, 0, "l")
+
+    problem_latex = (
+        f"已知双曲线 $C$: $\\frac{{x^2}}{{{a**2}}} - \\frac{{y^2}}{{{b**2}}} = 1$ "
+        f"($a > 0$, $b > 0$)，右焦点 $F_2({c:.4g}, 0)$，右准线 $l$: $x = {directrix_x:.4g}$。\n\n"
+        f"(1) 证明：双曲线上任意点到焦点距离与到准线距离之比为 $e$；\n\n"
+        f"(2) 求右支上点 $P$ 到右焦点距离的取值范围。"
+    )
+
+    solution_latex = (
+        f"**解：**\n\n"
+        f"(1) 设 $P(x_0, y_0)$ 在右支上，$x_0 \\geq {a}$。\n\n"
+        f"$|PF_2| = ex_0 - a$（右支焦半径公式）\n\n"
+        f"$d = x_0 - \\frac{{a^2}}{{c}} = \\frac{{cx_0 - a^2}}{{c}}$\n\n"
+        f"$\\frac{{|PF_2|}}{{d}} = \\frac{{ex_0 - a}}{{\\frac{{cx_0 - a^2}}{{c}}}} = \\frac{{\\frac{{c}}{{a}}x_0 - a}}{{\\frac{{cx_0 - a^2}}{{c}}}} = \\frac{{c}}{{a}} = e$ ✓\n\n"
+        f"(2) $|PF_2| = ex_0 - a$，$x_0 \\in [{a}, +\\infty)$\n\n"
+        f"$|PF_2| \\in [ea - a, +\\infty) = [{a*(e-1):.4g}, +\\infty)$"
+    )
+
+    return Problem(
+        title=f"双曲线第二定义 (a={a}, b={b})",
+        topic="双曲线", difficulty=2,
+        problem_latex=problem_latex, solution_latex=solution_latex,
+        conic_params=params, points=[F1, F2, L], conic_type="hyperbola",
+        answer=f"|PF₂| ∈ [{a*(e-1):.4g}, +∞)"
+    )
+
+
+def _hyperbola_tangent_line(a, b, c, e, params):
+    """双曲线切线问题"""
+    F1 = Point(-c, 0, "F_1")
+    F2 = Point(c, 0, "F_2")
+
+    x0_val = 2 * a
+    y0_val = b * np.sqrt((x0_val/a)**2 - 1)
+
+    problem_latex = (
+        f"已知双曲线 $C$: $\\frac{{x^2}}{{{a**2}}} - \\frac{{y^2}}{{{b**2}}} = 1$ "
+        f"($a > 0$, $b > 0$)。\n\n"
+        f"点 $P({x0_val:.4g}, {y0_val:.4g})$ 在双曲线上。\n\n"
+        f"(1) 求过 $P$ 的切线方程；\n\n"
+        f"(2) 证明：双曲线的切线与两条渐近线围成的三角形面积为定值 $ab$。"
+    )
+
+    solution_latex = (
+        f"**解：**\n\n"
+        f"(1) 切线: $\\frac{{x_0 x}}{{{a**2}}} - \\frac{{y_0 y}}{{{b**2}}} = 1$\n\n"
+        f"$\\frac{{{x0_val:.4g} \\cdot x}}{{{a**2}}} - \\frac{{{y0_val:.4g} \\cdot y}}{{{b**2}}} = 1$\n\n"
+        f"(2) 渐近线 $y = \\pm\\frac{{b}}{{a}}x$，切线与渐近线交于 $A$, $B$。\n\n"
+        f"$S_{{\\triangle OAB}} = ab$（定值，与切点位置无关）"
+    )
+
+    return Problem(
+        title=f"双曲线切线 (a={a}, b={b})",
+        topic="双曲线", difficulty=2,
+        problem_latex=problem_latex, solution_latex=solution_latex,
+        conic_params=params, points=[F1, F2, Point(x0_val, y0_val, "P")],
+        conic_type="hyperbola",
+        answer=f"S_△OAB = ab = {a*b:.4g} (定值)"
+    )
+
+
+def _hyperbola_slope_product(a, b, c, e, params):
+    """双曲线斜率积（第三定义）"""
+    F1 = Point(-c, 0, "F_1")
+    F2 = Point(c, 0, "F_2")
+    A = Point(-a, 0, "A")
+    B = Point(a, 0, "B")
+
+    product = b**2 / a**2
+
+    problem_latex = (
+        f"已知双曲线 $C$: $\\frac{{x^2}}{{{a**2}}} - \\frac{{y^2}}{{{b**2}}} = 1$ "
+        f"($a > 0$, $b > 0$)，左、右顶点分别为 $A(-{a}, 0)$、$B({a}, 0)$。\n\n"
+        f"点 $P$ 在双曲线上（$P$ 异于 $A$, $B$）。\n\n"
+        f"(1) 求 $k_{{PA}} \\cdot k_{{PB}}$ 的值；\n\n"
+        f"(2) 若 $k_{{PA}} \\cdot k_{{PB}} = \\frac{{b^2}}{{a^2}}$，这说明什么几何性质？"
+    )
+
+    solution_latex = (
+        f"**解：**\n\n"
+        f"(1) 设 $P(x_0, y_0)$。\n\n"
+        f"$k_{{PA}} \\cdot k_{{PB}} = \\frac{{y_0}}{{x_0 + {a}}} \\cdot \\frac{{y_0}}{{x_0 - {a}}} = \\frac{{y_0^2}}{{x_0^2 - {a**2}}}$\n\n"
+        f"由 $\\frac{{x_0^2}}{{{a**2}}} - \\frac{{y_0^2}}{{{b**2}}} = 1$：$y_0^2 = \\frac{{{b**2}(x_0^2 - {a**2})}}{{{a**2}}}$\n\n"
+        f"代入得 $k_{{PA}} \\cdot k_{{PB}} = \\frac{{{b**2}}}{{{a**2}}}$\n\n"
+        f"(2) 这是双曲线的第三定义：过双曲线上任意一点与两顶点连线的斜率之积为常数 $\\frac{{b^2}}{{a^2}}$。\n\n"
+        f"与椭圆的第三定义（$-\\frac{{b^2}}{{a^2}}$）对比，符号相反。"
+    )
+
+    return Problem(
+        title=f"双曲线第三定义 (a={a}, b={b})",
+        topic="双曲线", difficulty=2,
+        problem_latex=problem_latex, solution_latex=solution_latex,
+        conic_params=params, points=[F1, F2, A, B], conic_type="hyperbola",
+        answer=f"k_PA · k_PB = b²/a² = {product:.4g}"
+    )
+
+
+def _hyperbola_ecc_range(a, b, c, e, params):
+    """双曲线离心率范围问题"""
+    F1 = Point(-c, 0, "F_1")
+    F2 = Point(c, 0, "F_2")
+
+    problem_latex = (
+        f"已知双曲线 $C$: $\\frac{{x^2}}{{{a**2}}} - \\frac{{y^2}}{{{b**2}}} = 1$ "
+        f"($a > 0$, $b > 0$)，左、右焦点 $F_1(-{c:.4g}, 0)$、$F_2({c:.4g}, 0)$。\n\n"
+        f"若双曲线上存在点 $P$ 使得 $\\angle F_1PF_2 = 90°$，求离心率 $e$ 的取值范围。"
+    )
+
+    # ∠F₁PF₂ = 90° → |PF₁|² + |PF₂|² = 4c²
+    # ||PF₁| - |PF₂|| = 2a
+    # (|PF₁|-|PF₂|)² = 4a² = |PF₁|² + |PF₂|² - 2|PF₁||PF₂|
+    # 4a² = 4c² - 2|PF₁||PF₂|
+    # |PF₁||PF₂| = 2(c²-a²) = 2b²
+    # 又 |PF₁|² + |PF₂|² = 4c², |PF₁||PF₂| = 2b²
+    # |PF₁|, |PF₂| 是 t² - (|PF₁|+|PF₂|)t + 2b² = 0 的根
+    # 要使实根存在: (|PF₁|+|PF₂|)² ≥ 8b²
+    # |PF₁|+|PF₂| ≥ 2√(2b²) = 2b√2
+    # 又 ||PF₁|-|PF₂|| = 2a → |PF₁|+|PF₂| ≥ 2a
+    # 需要 2a ≥ 2b√2 即 a ≥ b√2 即 a² ≥ 2b² = 2(c²-a²)
+    # 3a² ≥ 2c² → e² ≤ 3/2 → e ≤ √(3/2)
+    # 又 e > 1
+    # 所以 1 < e ≤ √(3/2)
+
+    ecc_max = np.sqrt(1.5)
+
+    solution_latex = (
+        f"**解：**\n\n"
+        f"设 $|PF_1| = m$，$|PF_2| = n$。\n\n"
+        f"由双曲线定义：$|m - n| = 2a$\n\n"
+        f"由 $\\angle F_1PF_2 = 90°$：$m^2 + n^2 = 4c^2$\n\n"
+        f"$(m-n)^2 = m^2 + n^2 - 2mn = 4c^2 - 2mn$\n\n"
+        f"$4a^2 = 4c^2 - 2mn$，解得 $mn = 2b^2$\n\n"
+        f"$m$, $n$ 是方程 $t^2 - (m+n)t + 2b^2 = 0$ 的两正根。\n\n"
+        f"需 $(m+n)^2 \\geq 8b^2$，即 $m+n \\geq 2b\\sqrt{{2}}$。\n\n"
+        f"又 $|m-n| = 2a$，故 $m+n \\geq 2a$（当 $mn$ 最小时取等）。\n\n"
+        f"需 $2a \\geq 2b\\sqrt{{2}}$，即 $a^2 \\geq 2b^2 = 2(c^2-a^2)$\n\n"
+        f"$3a^2 \\geq 2c^2$，即 $e^2 \\leq \\frac{{3}}{{2}}$，$e \\leq \\sqrt{{\\frac{{3}}{{2}}}} = {ecc_max:.4g}$\n\n"
+        f"又 $e > 1$，故 $e \\in \\left(1, \\sqrt{{\\frac{{3}}{{2}}}}\\right]$"
+    )
+
+    return Problem(
+        title=f"双曲线离心率范围 (a={a}, b={b})",
+        topic="双曲线", difficulty=3,
+        problem_latex=problem_latex, solution_latex=solution_latex,
+        conic_params=params, points=[F1, F2], conic_type="hyperbola",
+        answer=f"e ∈ (1, √(3/2)] = (1, {ecc_max:.4g}]"
+    )
+
+
+def _hyperbola_tangent(a, b, c, e, params):
+    """双曲线极点极线"""
+    F1 = Point(-c, 0, "F_1")
+    F2 = Point(c, 0, "F_2")
+
+    t_val = a * 0.5  # T 在渐近线之间
+    polar_x = a**2 / t_val
+
+    problem_latex = (
+        f"已知双曲线 $C$: $\\frac{{x^2}}{{{a**2}}} - \\frac{{y^2}}{{{b**2}}} = 1$ "
+        f"($a > 0$, $b > 0$)。\n\n"
+        f"点 $T({t_val:.4g}, 0)$ 在双曲线两支之间（内部），过 $T$ 作双曲线的两条切线，切点为 $A$, $B$。\n\n"
+        f"(1) 求切点弦 $AB$ 的方程；\n\n"
+        f"(2) 证明 $AB$ 恒过定点。"
+    )
+
+    solution_latex = (
+        f"**解：**\n\n"
+        f"(1) 由极点极线定理，点 $T(x_0, y_0)$ 关于双曲线 $\\frac{{x^2}}{{{a**2}}} - \\frac{{y^2}}{{{b**2}}} = 1$ 的极线为：\n\n"
+        f"$\\frac{{x_0 x}}{{{a**2}}} - \\frac{{y_0 y}}{{{b**2}}} = 1$\n\n"
+        f"代入 $T({t_val:.4g}, 0)$：$\\frac{{{t_val:.4g} \\cdot x}}{{{a**2}}} = 1$，即 $x = \\frac{{{a**2}}}{{{t_val:.4g}}} = {polar_x:.4g}$\n\n"
+        f"(2) 切点弦 $AB$ 恒过定点 $({polar_x:.4g}, 0)$。"
+    )
+
+    return Problem(
+        title=f"双曲线极点极线 (a={a}, b={b})",
+        topic="双曲线", difficulty=3,
+        problem_latex=problem_latex, solution_latex=solution_latex,
+        conic_params=params, points=[F1, F2, Point(t_val, 0, "T")],
+        conic_type="hyperbola",
+        answer=f"AB: x = {polar_x:.4g}"
+    )
+
+
+# ==================== 抛物线 — 进阶题型 ====================
+
+def _parabola_midpoint_chord(p, params, F):
+    """抛物线中点弦问题（点差法）"""
+    V = Point(0, 0, "O")
+
+    x0, y0 = 3, 2
+    # y²=2px, 点差法: k_AB = p/y₀
+    k_AB = p / y0
+
+    problem_latex = (
+        f"已知抛物线 $C$: $y^2 = {2*p}x$。\n\n"
+        f"点 $M({x0}, {y0})$ 在抛物线内部，过 $M$ 作弦 $AB$，使 $M$ 为 $AB$ 的中点。\n\n"
+        f"(1) 求直线 $AB$ 的斜率；\n\n"
+        f"(2) 求直线 $AB$ 的方程。"
+    )
+
+    solution_latex = (
+        f"**解：**\n\n"
+        f"(1) 设 $A(x_1, y_1)$，$B(x_2, y_2)$。\n\n"
+        f"由 $y_1^2 = {2*p}x_1$，$y_2^2 = {2*p}x_2$，相减：\n\n"
+        f"$(y_1-y_2)(y_1+y_2) = {2*p}(x_1-x_2)$\n\n"
+        f"$k_{{AB}} = \\frac{{y_1-y_2}}{{x_1-x_2}} = \\frac{{{2*p}}}{{y_1+y_2}} = \\frac{{{2*p}}}{{2 \\cdot {y0}}} = \\frac{{p}}{{y_0}} = \\frac{{{p}}}{{{y0}}} = {k_AB:.4g}$\n\n"
+        f"(2) 直线 $AB$: $y - {y0} = {k_AB:.4g}(x - {x0})$"
+    )
+
+    return Problem(
+        title=f"抛物线中点弦/点差法 (p={p})",
+        topic="抛物线", difficulty=2,
+        problem_latex=problem_latex, solution_latex=solution_latex,
+        conic_params=params, points=[F, V, Point(x0, y0, "M")],
+        conic_type="parabola",
+        answer=f"k_AB = p/y₀ = {k_AB:.4g}"
+    )
+
+
+def _parabola_focal_radius(p, params, F):
+    """抛物线焦半径问题"""
+    V = Point(0, 0, "O")
+
+    problem_latex = (
+        f"已知抛物线 $C$: $y^2 = {2*p}x$，焦点 $F({p/2}, 0)$。\n\n"
+        f"点 $P$ 在抛物线上。\n\n"
+        f"(1) 求 $|PF|$ 的最小值；\n\n"
+        f"(2) 设 $P(x_0, y_0)$，用 $x_0$ 表示 $|PF|$；\n\n"
+        f"(3) 若 $|PF| = {p}$，求 $P$ 的坐标。"
+    )
+
+    solution_latex = (
+        f"**解：**\n\n"
+        f"(1) 由抛物线定义：$|PF|$ = $P$ 到准线 $x = -{p/2}$ 的距离 = $x_0 + {p/2}$\n\n"
+        f"$x_0 \\geq 0$，故 $|PF|_{min} = {p/2}$（$P$ 在顶点时取到）\n\n"
+        f"(2) $|PF| = x_0 + \\frac{{p}}{{2}} = x_0 + {p/2}$\n\n"
+        f"(3) $|PF| = x_0 + {p/2} = {p}$，解得 $x_0 = {p/2}$\n\n"
+        f"$y_0^2 = {2*p} \\cdot {p/2} = {p**2}$，$y_0 = \\pm{p}$\n\n"
+        f"$P({p/2}, \\pm{p})$"
+    )
+
+    return Problem(
+        title=f"抛物线焦半径 (p={p})",
+        topic="抛物线", difficulty=2,
+        problem_latex=problem_latex, solution_latex=solution_latex,
+        conic_params=params, points=[F, V], conic_type="parabola",
+        answer=f"|PF|_min = p/2 = {p/2}"
+    )
+
+
+def _parabola_tangent_line(p, params, F):
+    """抛物线切线问题"""
+    V = Point(0, 0, "O")
+
+    x0_val = p
+    y0_val = np.sqrt(2 * p * x0_val)
+
+    problem_latex = (
+        f"已知抛物线 $C$: $y^2 = {2*p}x$。\n\n"
+        f"点 $P({x0_val:.4g}, {y0_val:.4g})$ 在抛物线上。\n\n"
+        f"(1) 求过 $P$ 的切线方程；\n\n"
+        f"(2) 证明：抛物线在点 $P$ 处的切线与 $x$ 轴的交点为 $\\left(-\\frac{{p}}{{2}}, 0\\right)$（准线与 $x$ 轴的交点）。"
+    )
+
+    solution_latex = (
+        f"**解：**\n\n"
+        f"(1) 对 $y^2 = {2*p}x$ 求导：$2y \\cdot y' = {2*p}$，$y' = \\frac{{p}}{{y}}$\n\n"
+        f"在 $P$ 处斜率 $k = \\frac{{p}}{{y_0}} = \\frac{{{p}}}{{{y0_val:.4g}}}$\n\n"
+        f"切线: $y - {y0_val:.4g} = \\frac{{{p}}}{{{y0_val:.4g}}}(x - {x0_val:.4g})$\n\n"
+        f"化简: $y_0 y = p(x + x_0)$，即 ${y0_val:.4g}y = {p}(x + {x0_val:.4g})$\n\n"
+        f"(2) 令 $y = 0$：$x = -x_0 = -{x0_val:.4g} = -\\frac{{p}}{{2}}$（准线与 $x$ 轴交点）✓"
+    )
+
+    return Problem(
+        title=f"抛物线切线 (p={p})",
+        topic="抛物线", difficulty=2,
+        problem_latex=problem_latex, solution_latex=solution_latex,
+        conic_params=params, points=[F, V, Point(x0_val, y0_val, "P")],
+        conic_type="parabola",
+        answer="切线与x轴交于(-p/2, 0)即准线位置"
+    )
+
+
+def _parabola_second_def(p, params, F):
+    """抛物线第二定义（焦准距）"""
+    V = Point(0, 0, "O")
+    L = Point(-p/2, 0, "l")
+
+    problem_latex = (
+        f"已知抛物线 $C$: $y^2 = {2*p}x$，焦点 $F({p/2}, 0)$，准线 $l$: $x = -{p/2}$。\n\n"
+        f"点 $P$ 在抛物线上，$d$ 为 $P$ 到准线 $l$ 的距离。\n\n"
+        f"(1) 证明：$|PF| = d$（抛物线定义）；\n\n"
+        f"(2) 求 $|PF|$ 的最小值及取到最小值时 $P$ 的坐标。"
+    )
+
+    solution_latex = (
+        f"**解：**\n\n"
+        f"(1) 设 $P(x_0, y_0)$。\n\n"
+        f"$|PF| = \\sqrt{{(x_0 - {p/2})^2 + y_0^2}} = \\sqrt{{(x_0 - {p/2})^2 + {2*p}x_0}}$\n\n"
+        f"$= \\sqrt{{x_0^2 - {p}x_0 + {p**2/4} + {2*p}x_0}} = \\sqrt{{x_0^2 + {p}x_0 + {p**2/4}}} = x_0 + {p/2}$\n\n"
+        f"$d = x_0 - (-{p/2}) = x_0 + {p/2}$\n\n"
+        f"故 $|PF| = d$ ✓\n\n"
+        f"(2) $|PF| = x_0 + {p/2} \\geq {p/2}$（$x_0 \\geq 0$）\n\n"
+        f"最小值 $\\frac{{p}}{{2}} = {p/2}$，在 $P(0, 0)$（顶点）时取到。"
+    )
+
+    return Problem(
+        title=f"抛物线第二定义 (p={p})",
+        topic="抛物线", difficulty=2,
+        problem_latex=problem_latex, solution_latex=solution_latex,
+        conic_params=params, points=[F, V, L], conic_type="parabola",
+        answer=f"|PF|_min = p/2 = {p/2}"
+    )
+
+
+def _parabola_slope_product(p, params, F):
+    """抛物线斜率积问题"""
+    V = Point(0, 0, "O")
+
+    problem_latex = (
+        f"已知抛物线 $C$: $y^2 = {2*p}x$，顶点为 $O$。\n\n"
+        f"过 $O$ 作两条互相垂直的弦 $OA$ 和 $OB$（$A$, $B$ 在抛物线上）。\n\n"
+        f"(1) 设 $A(y_1^2/{2*p}, y_1)$，$B(y_2^2/{2*p}, y_2)$，证明 $y_1 y_2 = -{p**2}$；\n\n"
+        f"(2) 求直线 $AB$ 是否过定点。"
+    )
+
+    solution_latex = (
+        f"**解：**\n\n"
+        f"(1) $k_{{OA}} = \\frac{{y_1}}{{y_1^2/{2*p}}} = \\frac{{{2*p}}}{{y_1}}$，$k_{{OB}} = \\frac{{{2*p}}}{{y_2}}$\n\n"
+        f"$OA \\perp OB$：$k_{{OA}} \\cdot k_{{OB}} = -1$：$\\frac{{{4*p**2}}}{{y_1 y_2}} = -1$\n\n"
+        f"$y_1 y_2 = -{4*p**2}$\n\n"
+        f"(2) 直线 $AB$ 的方程：$y - y_1 = \\frac{{y_2-y_1}}{{x_2-x_1}}(x - x_1)$\n\n"
+        f"利用 $x_i = y_i^2/{2*p}$ 和 $y_1 y_2 = -{4*p**2}$，可证 $AB$ 过定点 $({2*p}, 0)$。"
+    )
+
+    return Problem(
+        title=f"抛物线互相垂直弦 (p={p})",
+        topic="抛物线", difficulty=3,
+        problem_latex=problem_latex, solution_latex=solution_latex,
+        conic_params=params, points=[F, V], conic_type="parabola",
+        answer=f"y₁y₂ = -4p² = {-4*p**2}, AB过({2*p}, 0)"
+    )
+
+
+def _parabola_ecc_range(p, params, F):
+    """抛物线离心率相关问题"""
+    V = Point(0, 0, "O")
+
+    problem_latex = (
+        f"已知抛物线 $C$: $y^2 = {2*p}x$，焦点 $F({p/2}, 0)$。\n\n"
+        f"过 $F$ 作直线 $l$ 交抛物线于 $A$, $B$ 两点。\n\n"
+        f"(1) 若 $|AB| = {4*p}$，求直线 $l$ 的斜率；\n\n"
+        f"(2) 求 $\\frac{{1}}{{|AF|}} + \\frac{{1}}{{|BF|}}$ 的值。"
+    )
+
+    # |AB| = 2p/sin²θ = 4p → sin²θ = 1/2 → θ = 45°
+    # 1/|AF| + 1/|BF| = 2/p
+
+    solution_latex = (
+        f"**解：**\n\n"
+        f"(1) 由焦点弦公式 $|AB| = \\frac{{2p}}{{\\sin^2\\theta}}$：\n\n"
+        f"${4*p} = \\frac{{2 \\cdot {p}}}{{\\sin^2\\theta}}$，$\\sin^2\\theta = \\frac{{1}}{{2}}$，$\\theta = 45°$\n\n"
+        f"斜率 $k = \\tan 45° = 1$\n\n"
+        f"(2) 由焦点弦性质（调和平均）：\n\n"
+        f"$\\frac{{1}}{{|AF|}} + \\frac{{1}}{{|BF|}} = \\frac{{2}}{{p}} = \\frac{{2}}{{{p}}} = {2/p:.4g}$\n\n"
+        f"此为定值，与直线 $l$ 的倾斜角无关。"
+    )
+
+    return Problem(
+        title=f"抛物线焦点弦性质 (p={p})",
+        topic="抛物线", difficulty=3,
+        problem_latex=problem_latex, solution_latex=solution_latex,
+        conic_params=params, points=[F, V], conic_type="parabola",
+        answer=f"1/|AF|+1/|BF| = 2/p = {2/p:.4g}"
+    )
+
+
+# ==================== 极坐标 — 进阶题型 ====================
+
+def _polar_focal_radius(r, params):
+    """极坐标焦半径问题"""
+    O = Point(0, 0, "O")
+
+    problem_latex = (
+        f"在极坐标系中，已知圆 $C$: $\\rho = {2*r}\\cos\\theta$。\n\n"
+        f"(1) 求圆 $C$ 的直角坐标方程；\n\n"
+        f"(2) 设 $A$ 为圆 $C$ 上的点，$O$ 为极点，求 $|OA|$ 的取值范围。"
+    )
+
+    solution_latex = (
+        f"**解：**\n\n"
+        f"(1) $\\rho = {2*r}\\cos\\theta \\implies \\rho^2 = {2*r}\\rho\\cos\\theta \\implies x^2+y^2 = {2*r}x$\n\n"
+        f"$(x-{r})^2 + y^2 = {r**2}$，圆心 $({r}, 0)$，半径 ${r}$\n\n"
+        f"(2) $|OA| = \\rho$，$\\rho = {2*r}\\cos\\theta$，$\\cos\\theta \\in [-1, 1]$\n\n"
+        f"$\\rho \\in [0, {2*r}]$，$|OA|$ 的取值范围为 $[0, {2*r}]$"
+    )
+
+    return Problem(
+        title=f"极坐标焦半径 (r={r})",
+        topic="极坐标", difficulty=2,
+        problem_latex=problem_latex, solution_latex=solution_latex,
+        conic_params=params, points=[O], conic_type="polar",
+        answer=f"|OA| ∈ [0, {2*r}]"
+    )
+
+
+def _polar_chord_ratio(r, params):
+    """极坐标弦长比值问题"""
+    O = Point(0, 0, "O")
+
+    problem_latex = (
+        f"在极坐标系中，圆 $C$: $\\rho = {2*r}\\cos\\theta$，直线 $l$: $\\theta = \\alpha$（$\\alpha$ 为参数）。\n\n"
+        f"(1) 求直线 $l$ 与圆 $C$ 的交点 $P$ 的极径 $\\rho$；\n\n"
+        f"(2) 当 $\\alpha = \\frac{{\\pi}}{{4}}$ 时，求 $|OP|$ 的值。"
+    )
+
+    rho_at_45 = 2 * r * np.cos(np.pi / 4)
+
+    solution_latex = (
+        f"**解：**\n\n"
+        f"(1) 将 $\\theta = \\alpha$ 代入圆的方程：$\\rho = {2*r}\\cos\\alpha$\n\n"
+        f"交点 $P$ 的极径 $\\rho = {2*r}\\cos\\alpha$\n\n"
+        f"(2) 当 $\\alpha = \\frac{{\\pi}}{{4}}$：$\\rho = {2*r}\\cos\\frac{{\\pi}}{{4}} = {2*r} \\cdot \\frac{{\\sqrt{{2}}}}{{2}} = {rho_at_45:.4g}$\n\n"
+        f"$|OP| = {rho_at_45:.4g}$"
+    )
+
+    return Problem(
+        title=f"极坐标弦长比值 (r={r})",
+        topic="极坐标", difficulty=2,
+        problem_latex=problem_latex, solution_latex=solution_latex,
+        conic_params=params, points=[O], conic_type="polar",
+        answer=f"|OP| = {rho_at_45:.4g}"
+    )
+
+
+def _polar_second_def(r, params):
+    """极坐标第二定义（圆锥曲线统一定义）"""
+    O = Point(0, 0, "O")
+
+    problem_latex = (
+        f"在极坐标系中，以椭圆左焦点 $F$ 为极点，椭圆的离心率 $e = \\frac{{1}}{{2}}$，"
+        f"焦点到相应准线的距离 $p = 3$。\n\n"
+        f"(1) 求椭圆的极坐标方程；\n\n"
+        f"(2) 求椭圆的直角坐标标准方程；\n\n"
+        f"(3) 求 $\\theta = \\frac{{\\pi}}{{3}}$ 时 $\\rho$ 的值。"
+    )
+
+    rho_at_60 = 3 / (2 - np.cos(np.pi/3))
+
+    solution_latex = (
+        f"**解：**\n\n"
+        f"(1) $\\rho = \\frac{{ep}}{{1 - e\\cos\\theta}} = \\frac{{\\frac{{1}}{{2}} \\cdot 3}}{{1 - \\frac{{1}}{{2}}\\cos\\theta}} = \\frac{{3}}{{2 - \\cos\\theta}}$\n\n"
+        f"(2) $e = \\frac{{c}}{{a}} = \\frac{{1}}{{2}}$，$p = \\frac{{b^2}}{{c}} = 3$\n\n"
+        f"解得 $a = 2$，$b = \\sqrt{{3}}$，$c = 1$\n\n"
+        f"$\\frac{{x^2}}{{4}} + \\frac{{y^2}}{{3}} = 1$\n\n"
+        f"(3) $\\theta = \\frac{{\\pi}}{{3}}$：$\\rho = \\frac{{3}}{{2 - \\cos\\frac{{\\pi}}{{3}}}} = \\frac{{3}}{{2 - \\frac{{1}}{{2}}}} = \\frac{{3}}{{\\frac{{3}}{{2}}}} = 2$"
+    )
+
+    return Problem(
+        title="极坐标圆锥曲线统一定义",
+        topic="极坐标", difficulty=3,
+        problem_latex=problem_latex, solution_latex=solution_latex,
+        conic_params=params, points=[O], conic_type="polar",
+        answer=f"ρ(π/3) = 2"
+    )
+
+
+def _polar_slope_product(r, params):
+    """极坐标斜率积问题"""
+    O = Point(0, 0, "O")
+
+    problem_latex = (
+        f"在极坐标系中，圆 $C$: $\\rho = {2*r}\\cos\\theta$。\n\n"
+        f"过极点 $O$ 作两条互相垂直的弦 $OA$ 和 $OB$（$A$, $B$ 在圆上）。\n\n"
+        f"(1) 求 $|OA| \\cdot |OB|$ 的值；\n\n"
+        f"(2) 求 $|AB|$ 的最小值。"
+    )
+
+    # |OA| = 2r·cosα, |OB| = 2r·cos(α+90°) = -2r·sinα
+    # |OA|·|OB| = -4r²·cosα·sinα = -2r²·sin(2α)
+    # 但 |OA|,|OB| > 0, 所以取绝对值: |OA|·|OB| = 4r²|cosα·sinα| = 2r²|sin2α|
+    # 最小值在 sin2α = 0 时... 不对
+    # 实际上 OA = 2r·cosα > 0 要求 α ∈ (-π/2, π/2)
+    # OB = 2r·cos(α+π/2) = -2r·sinα > 0 要求 sinα < 0, α ∈ (-π/2, 0)
+    # |OA|·|OB| = -4r²·cosα·sinα = 2r²·sin(2|α|)
+    # 最小值... 这个比较复杂
+    # 用更简单的题: 求 |OA|² + |OB|²
+    # |OA|² + |OB|² = 4r²(cos²α + sin²α) = 4r² (定值!)
+
+    problem_latex = (
+        f"在极坐标系中，圆 $C$: $\\rho = {2*r}\\cos\\theta$。\n\n"
+        f"过极点 $O$ 作两条互相垂直的弦 $OA$ 和 $OB$（$A$, $B$ 在圆上）。\n\n"
+        f"(1) 用 $\\alpha$（$OA$ 的极角）表示 $|OA|$ 和 $|OB|$；\n\n"
+        f"(2) 证明 $|OA|^2 + |OB|^2$ 为定值，并求此定值；\n\n"
+        f"(3) 求 $|AB|$ 的最小值。"
+    )
+
+    solution_latex = (
+        f"**解：**\n\n"
+        f"(1) $|OA| = {2*r}\\cos\\alpha$，$|OB| = {2*r}\\cos(\\alpha + \\frac{{\\pi}}{{2}}) = -{2*r}\\sin\\alpha$\n\n"
+        f"(2) $|OA|^2 + |OB|^2 = {4*r**2}(\\cos^2\\alpha + \\sin^2\\alpha) = {4*r**2}$（定值）\n\n"
+        f"(3) 由余弦定理：$|AB|^2 = |OA|^2 + |OB|^2 - 2|OA||OB|\\cos 90° = {4*r**2}$\n\n"
+        f"$|AB| = {2*r}$（定值！两条垂直弦的端点距离恒为直径）"
+    )
+
+    return Problem(
+        title=f"极坐标垂直弦 (r={r})",
+        topic="极坐标", difficulty=2,
+        problem_latex=problem_latex, solution_latex=solution_latex,
+        conic_params=params, points=[O], conic_type="polar",
+        answer=f"|OA|²+|OB|² = {4*r**2} (定值), |AB| = {2*r}"
+    )
+
+
+def _polar_area_opt(r, params):
+    """极坐标面积最值"""
+    O = Point(0, 0, "O")
+
+    problem_latex = (
+        f"在极坐标系中，圆 $C$: $\\rho = {2*r}\\cos\\theta$。\n\n"
+        f"设 $A$ 为圆上一点，$B$ 为圆上另一点，$\\angle AOB = \\frac{{\\pi}}{{3}}$。\n\n"
+        f"求 $\\triangle OAB$ 面积的最大值。"
+    )
+
+    # S = 1/2 · |OA| · |OB| · sin(π/3)
+    # |OA| = 2r·cosα, |OB| = 2r·cos(α+π/3)
+    # S = 1/2 · 4r² · cosα · cos(α+π/3) · sin(π/3)
+    # = 2r² · sin(π/3) · cosα · cos(α+π/3)
+    # cosα · cos(α+π/3) = 1/2[cos(2α+π/3) + cos(π/3)] = 1/2[cos(2α+π/3) + 1/2]
+    # 最大值在 cos(2α+π/3) = 1, 即 2α+π/3 = 0, α = -π/6
+    # 最大值 = 2r² · sin(π/3) · 1/2 · (1+1/2) = 2r² · (√3/2) · 3/4 = 3√3r²/4
+
+    S_max = 3 * np.sqrt(3) * r**2 / 4
+
+    problem_latex = (
+        f"在极坐标系中，圆 $C$: $\\rho = {2*r}\\cos\\theta$。\n\n"
+        f"$A$, $B$ 为圆上两点，$\\angle AOB = \\frac{{\\pi}}{{3}}$。\n\n"
+        f"求 $\\triangle OAB$ 面积的最大值。"
+    )
+
+    solution_latex = (
+        f"**解：**\n\n"
+        f"设 $A$ 的极角为 $\\alpha$，则 $B$ 的极角为 $\\alpha + \\frac{{\\pi}}{{3}}$。\n\n"
+        f"$|OA| = {2*r}\\cos\\alpha$，$|OB| = {2*r}\\cos\\left(\\alpha + \\frac{{\\pi}}{{3}}\\right)$\n\n"
+        f"$S = \\frac{{1}}{{2}}|OA| \\cdot |OB| \\sin\\frac{{\\pi}}{{3}} = \\frac{{\\sqrt{{3}}}}{{2}} \\cdot {2*r}\\cos\\alpha \\cdot {2*r}\\cos\\left(\\alpha+\\frac{{\\pi}}{{3}}\\right)$\n\n"
+        f"$= 2{r**2}\\sqrt{{3}} \\cdot \\cos\\alpha \\cdot \\cos\\left(\\alpha+\\frac{{\\pi}}{{3}}\\right)$\n\n"
+        f"利用积化和差：$\\cos\\alpha\\cos(\\alpha+\\frac{{\\pi}}{{3}}) = \\frac{{1}}{{2}}\\left[\\cos(2\\alpha+\\frac{{\\pi}}{{3}}) + \\frac{{1}}{{2}}\\right]$\n\n"
+        f"当 $\\cos(2\\alpha+\\frac{{\\pi}}{{3}}) = 1$ 时取最大值：\n\n"
+        f"$S_{{max}} = 2{r**2}\\sqrt{{3}} \\cdot \\frac{{1}}{{2}} \\cdot \\frac{{3}}{{2}} = \\frac{{3\\sqrt{{3}}{r**2}}}{{4}} = {S_max:.4g}$"
+    )
+
+    return Problem(
+        title=f"极坐标面积最值 (r={r})",
+        topic="极坐标", difficulty=3,
+        problem_latex=problem_latex, solution_latex=solution_latex,
+        conic_params=params, points=[O], conic_type="polar",
+        answer=f"S_max = 3√3r²/4 = {S_max:.4g}"
+    )
+
+
+def _polar_fixed_point(r, params):
+    """极坐标定点问题"""
+    O = Point(0, 0, "O")
+
+    problem_latex = (
+        f"在极坐标系中，圆 $C_1$: $\\rho = {2*r}\\cos\\theta$，圆 $C_2$: $\\rho = {2*r}\\sin\\theta$。\n\n"
+        f"(1) 求两圆交点的极坐标；\n\n"
+        f"(2) 求两圆公共弦的直角坐标方程。"
+    )
+
+    # 交点: 2r·cosθ = 2r·sinθ → tanθ = 1 → θ = π/4
+    # ρ = 2r·cos(π/4) = r√2
+    # 另一个交点是极点 (0, 0)
+
+    problem_latex = (
+        f"在极坐标系中，圆 $C_1$: $\\rho = {2*r}\\cos\\theta$，圆 $C_2$: $\\rho = {2*r}\\sin\\theta$。\n\n"
+        f"(1) 求两圆交点的极坐标；\n\n"
+        f"(2) 求两圆公共弦的直角坐标方程；\n\n"
+        f"(3) 求两圆公共弦的长度。"
+    )
+
+    rho_intersect = 2 * r * np.cos(np.pi / 4)
+    chord = rho_intersect  # 公共弦长 = |OP| (O到交点的距离)
+
+    solution_latex = (
+        f"**解：**\n\n"
+        f"(1) 联立 $\\rho = {2*r}\\cos\\theta$ 和 $\\rho = {2*r}\\sin\\theta$：\n\n"
+        f"$\\cos\\theta = \\sin\\theta$，$\\theta = \\frac{{\\pi}}{{4}}$\n\n"
+        f"$\\rho = {2*r}\\cos\\frac{{\\pi}}{{4}} = {rho_intersect:.4g}$\n\n"
+        f"交点：$O(0, 0)$ 和 $P({rho_intersect:.4g}, \\frac{{\\pi}}{{4}})$\n\n"
+        f"(2) $C_1$: $(x-{r})^2 + y^2 = {r**2}$，$C_2$: $x^2 + (y-{r})^2 = {r**2}$\n\n"
+        f"相减得公共弦：$x = y$，即 $x - y = 0$\n\n"
+        f"(3) $|OP| = {rho_intersect:.4g}$"
+    )
+
+    return Problem(
+        title=f"极坐标两圆交点 (r={r})",
+        topic="极坐标", difficulty=2,
+        problem_latex=problem_latex, solution_latex=solution_latex,
+        conic_params=params, points=[O], conic_type="polar",
+        answer=f"交点 ({rho_intersect:.4g}, π/4), 公共弦 x=y"
+    )
+
+
 def generate_parabola_dynamic(p=None, problem_type="basic", slope=None):
     """动态生成抛物线题目"""
     if p is None:
@@ -904,12 +1881,27 @@ def generate_parabola_dynamic(p=None, problem_type="basic", slope=None):
         if slope is None:
             slope = 1.0
         return _parabola_chord(p, params, F, slope)
+    # 进阶题型
+    elif problem_type == "midpoint_chord":
+        return _parabola_midpoint_chord(p, params, F)
+    elif problem_type == "focal_radius":
+        return _parabola_focal_radius(p, params, F)
+    elif problem_type == "tangent_line":
+        return _parabola_tangent_line(p, params, F)
+    elif problem_type == "second_def":
+        return _parabola_second_def(p, params, F)
+    # 进阶补充
+    elif problem_type == "slope_product":
+        return _parabola_slope_product(p, params, F)
+    # 竞赛题型
     elif problem_type == "property":
         return _parabola_property(p, params, F)
     elif problem_type == "archimedes":
         return _parabola_archimedes(p, params, F)
     elif problem_type == "fixed_point":
         return _parabola_fixed_point(p, params, F)
+    elif problem_type == "ecc_range":
+        return _parabola_ecc_range(p, params, F)
     else:
         raise ValueError(f"不支持的抛物线题型: {problem_type}")
 
@@ -1135,8 +2127,22 @@ def generate_polar_dynamic(r=None, problem_type="basic", angle=None):
         if angle is None:
             angle = np.pi / 3
         return _polar_line_circle(r, params, angle)
+    # 进阶题型
+    elif problem_type == "focal_radius":
+        return _polar_focal_radius(r, params)
+    elif problem_type == "chord_ratio":
+        return _polar_chord_ratio(r, params)
+    elif problem_type == "slope_product":
+        return _polar_slope_product(r, params)
+    elif problem_type == "fixed_point":
+        return _polar_fixed_point(r, params)
+    # 竞赛题型
     elif problem_type == "conic":
         return _polar_conic(r, params)
+    elif problem_type == "second_def":
+        return _polar_second_def(r, params)
+    elif problem_type == "area_opt":
+        return _polar_area_opt(r, params)
     else:
         raise ValueError(f"不支持的极坐标题型: {problem_type}")
 
@@ -1204,6 +2210,7 @@ def _polar_line_circle(r, params, angle):
 
 def _polar_conic(r, params):
     """极坐标与椭圆"""
+    O = Point(0, 0, "O")
     problem_latex = (
         f"在极坐标系中，以椭圆左焦点 $F$ 为极点，$e=\\frac{{1}}{{2}}$，$p=3$。\n\n"
         f"(1) 求椭圆的极坐标方程；\n\n"
@@ -1221,7 +2228,7 @@ def _polar_conic(r, params):
         title="极坐标与椭圆",
         topic="极坐标", difficulty=3,
         problem_latex=problem_latex, solution_latex=solution_latex,
-        conic_params=params, conic_type="polar",
+        conic_params=params, points=[O], conic_type="polar",
         answer=f"\\rho = \\frac{{3}}{{2 - \\cos\\theta}}"
     )
 

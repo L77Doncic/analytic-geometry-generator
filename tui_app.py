@@ -132,14 +132,21 @@ def parse_user_input(text: str) -> dict:
         "直线与圆": "line_circle", "line_circle": "line_circle",
         "性质": "property", "证明": "property", "property": "property",
         "极坐标方程": "conic", "conic": "conic",
+        # 进阶题型
+        "中点弦": "midpoint_chord", "点差法": "midpoint_chord", "midpoint_chord": "midpoint_chord",
+        "焦半径": "focal_radius", "focal_radius": "focal_radius",
+        "斜率积": "slope_product", "slope_product": "slope_product",
+        "切线": "tangent_line", "tangent_line": "tangent_line",
+        "第二定义": "second_def", "焦准距": "second_def", "second_def": "second_def",
+        "弦长比": "chord_ratio", "chord_ratio": "chord_ratio",
         # 高考压轴 / 竞赛题型
         "定点": "fixed_point", "定值": "fixed_point", "fixed_point": "fixed_point",
         "面积最值": "area_opt", "最值": "area_opt", "area_opt": "area_opt",
-        "离心率": "ecc_range", "范围": "ecc_range", "ecc_range": "ecc_range",
-        "切线": "tangent", "极点极线": "tangent", "tangent": "tangent",
-        "第三定义": "third_def", "斜率积": "third_def", "third_def": "third_def",
+        "离心率": "ecc_range", "ecc_range": "ecc_range",
+        "极点极线": "tangent", "第三定义": "third_def", "third_def": "third_def",
         "阿基米德": "archimedes", "archimedes": "archimedes",
         "渐近线": "asymptote_angle", "asymptote_angle": "asymptote_angle",
+        "垂直弦": "slope_product", "互相垂直": "slope_product",
     }
     for keyword, ptype in type_map.items():
         if keyword in text:
@@ -178,14 +185,16 @@ def parse_user_input(text: str) -> dict:
         if result["topic"] in hard_types:
             result["problem_type"] = _rand.choice(hard_types[result["topic"]])
     elif "进阶" in text or "中等" in text:
-        if result["topic"] == "ellipse":
-            result["problem_type"] = "chord"
-        elif result["topic"] == "hyperbola":
-            result["problem_type"] = "chord"
-        elif result["topic"] == "parabola":
-            result["problem_type"] = "chord"
-        elif result["topic"] == "polar":
-            result["problem_type"] = "line_circle"
+        # 自动从进阶题型中随机选择
+        import random as _rand2
+        mid_types = {
+            "ellipse": ["chord", "focus_triangle", "midpoint_chord", "focal_radius", "slope_product", "tangent_line", "second_def"],
+            "hyperbola": ["chord", "focus_triangle", "midpoint_chord", "focal_radius", "second_def", "tangent_line", "slope_product"],
+            "parabola": ["chord", "midpoint_chord", "focal_radius", "tangent_line", "second_def", "slope_product"],
+            "polar": ["line_circle", "focal_radius", "chord_ratio", "slope_product", "fixed_point"],
+        }
+        if result["topic"] in mid_types:
+            result["problem_type"] = _rand2.choice(mid_types[result["topic"]])
 
     # ---- 自动推断题型 ----
     if result["topic"] and result["problem_type"] == "basic":
@@ -376,19 +385,29 @@ class GeometryTUI(App):
                 yield Static("题型（可省略）", classes="muted")
                 yield Static("  基础/进阶/竞赛", classes="help-item")
                 yield Static("  或以下具体题型：", classes="help-item")
-                yield Static("  basic — 标准方程", classes="help-item")
-                yield Static("  chord — 焦点弦", classes="help-item")
+                yield Static("  ── 基础 ──", classes="muted")
+                yield Static("  basic — 标准方程/焦点/顶点", classes="help-item")
+                yield Static("  chord — 焦点弦问题", classes="help-item")
                 yield Static("  focus_triangle — 焦点三角形", classes="help-item")
-                yield Static("  fixed_point — 定点证明", classes="help-item")
-                yield Static("  area_opt — 面积最值", classes="help-item")
-                yield Static("  ecc_range — 离心率范围", classes="help-item")
-                yield Static("  tangent — 切线/极点极线", classes="help-item")
-                yield Static("  third_def — 第三定义", classes="help-item")
-                yield Static("  archimedes — 阿基米德三角形", classes="help-item")
-                yield Static("  asymptote_angle — 渐近线", classes="help-item")
                 yield Static("  line_circle — 直线与圆", classes="help-item")
                 yield Static("  property — 性质证明", classes="help-item")
                 yield Static("  conic — 极坐标方程", classes="help-item")
+                yield Static("  ── 进阶 ──", classes="muted")
+                yield Static("  midpoint_chord — 中点弦(点差法)", classes="help-item")
+                yield Static("  focal_radius — 焦半径取值", classes="help-item")
+                yield Static("  slope_product — 斜率积/垂直弦", classes="help-item")
+                yield Static("  tangent_line — 切线方程", classes="help-item")
+                yield Static("  second_def — 第二定义(焦准距)", classes="help-item")
+                yield Static("  chord_ratio — 弦长比值", classes="help-item")
+                yield Static("  fixed_point — 定点(极坐标)", classes="help-item")
+                yield Static("  ── 竞赛/压轴 ──", classes="muted")
+                yield Static("  fixed_point — 定点证明", classes="help-item")
+                yield Static("  area_opt — 面积最值", classes="help-item")
+                yield Static("  ecc_range — 离心率范围", classes="help-item")
+                yield Static("  tangent — 极点极线", classes="help-item")
+                yield Static("  third_def — 第三定义", classes="help-item")
+                yield Static("  archimedes — 阿基米德三角形", classes="help-item")
+                yield Static("  asymptote_angle — 渐近线", classes="help-item")
                 yield Divider()
                 yield Static("快捷键", classes="muted")
                 yield Static("  Ctrl+Q 退出", classes="help-item")
@@ -610,35 +629,45 @@ class GeometryTUI(App):
     k=数值   弦斜率           （焦点弦题型）
 
   ── 题型（均可省略，默认 basic） ──
-    基础题型：
+    ── 基础题型 ──
       basic           标准方程、焦点、顶点
       chord           焦点弦问题
       focus_triangle  焦点三角形
       line_circle     直线与圆（极坐标）
-
-    高考压轴/竞赛题型：
-      fixed_point     定点证明（椭圆/抛物线）
-      area_opt        面积最值（椭圆/双曲线）
-      ecc_range       离心率范围（椭圆）
-      tangent         切线/极点极线（椭圆）
-      third_def       第三定义（椭圆）
-      archimedes      阿基米德三角形（抛物线）
-      asymptote_angle 渐近线（双曲线）
       property        性质证明（抛物线）
       conic           极坐标方程（极坐标）
 
+    ── 进阶题型 ──
+      midpoint_chord  中点弦/点差法
+      focal_radius    焦半径取值范围
+      slope_product   斜率积/垂直弦
+      tangent_line    切线方程
+      second_def      第二定义(焦准距)
+      chord_ratio     弦长比值（极坐标）
+      fixed_point     定点（极坐标两圆）
+
+    ── 竞赛/压轴题型 ──
+      fixed_point     定点证明（椭圆/抛物线）
+      area_opt        面积最值（椭圆/双曲线/极坐标）
+      ecc_range       离心率范围（椭圆/双曲线/抛物线）
+      tangent         极点极线（椭圆/双曲线）
+      third_def       第三定义（椭圆）
+      archimedes      阿基米德三角形（抛物线）
+      asymptote_angle 渐近线（双曲线）
+
   ── 难度快捷方式 ──
     基础 / basic      → 基础题
-    进阶 / 中等       → 进阶题
+    进阶 / 中等       → 自动选进阶题型
     竞赛 / 压轴 / 难  → 自动选高难度题型
 
   ── 示例 ──
     椭圆 a=5 b=3           基础题（指定参数）
     椭圆 竞赛              压轴题（随机参数）
-    椭圆 a=5 定点           定点证明题
+    椭圆 进阶              进阶题（随机题型）
+    椭圆 a=5 midpoint_chord 中点弦题
     双曲线 a=3 b=4 基础     双曲线基础题
-    抛物线 p=4 弦长 k=1    焦点弦题
-    极坐标 r=3             极坐标基础题
+    抛物线 p=4 archimedes   阿基米德三角形
+    极坐标 r=3 area_opt     极坐标面积最值
     random                 随机生成一道题
 
   ── 快捷键 ──
