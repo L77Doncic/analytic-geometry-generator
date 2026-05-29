@@ -36,3 +36,4 @@ output/技术原理说明文档.md
 *.log
 create_ppt.py
 create_defense_ppt.py
+output/

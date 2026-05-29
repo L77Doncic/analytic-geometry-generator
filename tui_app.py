@@ -102,6 +102,14 @@ def parse_user_input(text: str) -> dict:
         "直线与圆": "line_circle", "line_circle": "line_circle",
         "性质": "property", "证明": "property", "property": "property",
         "极坐标方程": "conic", "conic": "conic",
+        # 高考压轴 / 竞赛题型
+        "定点": "fixed_point", "定值": "fixed_point", "fixed_point": "fixed_point",
+        "面积最值": "area_opt", "最值": "area_opt", "area_opt": "area_opt",
+        "离心率": "ecc_range", "范围": "ecc_range", "ecc_range": "ecc_range",
+        "切线": "tangent", "极点极线": "tangent", "tangent": "tangent",
+        "第三定义": "third_def", "斜率积": "third_def", "third_def": "third_def",
+        "阿基米德": "archimedes", "archimedes": "archimedes",
+        "渐近线": "asymptote_angle", "asymptote_angle": "asymptote_angle",
     }
     for keyword, ptype in type_map.items():
         if keyword in text:
@@ -128,15 +136,17 @@ def parse_user_input(text: str) -> dict:
                 result["params"][key] = val
 
     # ---- 识别难度 ----
-    if "竞赛" in text or "难" in text or "高级" in text:
-        if result["topic"] == "ellipse":
-            result["problem_type"] = "focus_triangle"
-        elif result["topic"] == "hyperbola":
-            result["problem_type"] = "focus_triangle"
-        elif result["topic"] == "parabola":
-            result["problem_type"] = "property"
-        elif result["topic"] == "polar":
-            result["problem_type"] = "conic"
+    if "竞赛" in text or "难" in text or "高级" in text or "压轴" in text:
+        # 自动从高难度题型中随机选择
+        import random as _rand
+        hard_types = {
+            "ellipse": ["fixed_point", "area_opt", "ecc_range", "tangent", "third_def"],
+            "hyperbola": ["asymptote_angle", "area_opt", "focus_triangle"],
+            "parabola": ["archimedes", "fixed_point", "property"],
+            "polar": ["conic"],
+        }
+        if result["topic"] in hard_types:
+            result["problem_type"] = _rand.choice(hard_types[result["topic"]])
     elif "进阶" in text or "中等" in text:
         if result["topic"] == "ellipse":
             result["problem_type"] = "chord"
@@ -387,11 +397,37 @@ class GeometryTUI(App):
             problem = self._generate_problem(parsed)
             self.current_problem = problem
 
+            # 创建时间戳目录
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            question_dir = os.path.join(OUTPUT_DIR, f"Question_{timestamp}")
+            os.makedirs(question_dir, exist_ok=True)
+
             # 渲染配图
             renderer = DiagramRenderer(figsize=(10, 8), dpi=150)
-            img_path = os.path.join(OUTPUT_DIR,
-                                    f"{problem.topic}_{problem.difficulty}_tui.png")
+            img_path = os.path.join(question_dir, "diagram.png")
             renderer.render(problem, img_path)
+
+            # 保存 LaTeX 题干
+            latex_path = os.path.join(question_dir, "problem.tex")
+            with open(latex_path, "w", encoding="utf-8") as f:
+                f.write(f"% {problem.title}\n\n")
+                f.write(problem.problem_latex)
+
+            # 保存 LaTeX 解答
+            sol_path = os.path.join(question_dir, "solution.tex")
+            with open(sol_path, "w", encoding="utf-8") as f:
+                f.write(f"% {problem.title} — 解答\n\n")
+                f.write(problem.solution_latex)
+
+            # 保存纯文本版本（Unicode 渲染后的）
+            txt_path = os.path.join(question_dir, "problem.txt")
+            with open(txt_path, "w", encoding="utf-8") as f:
+                f.write(f"{'='*50}\n")
+                f.write(f"{problem.title}\n")
+                f.write(f"{'='*50}\n\n")
+                f.write(render_problem_text(problem.problem_latex))
+                f.write(f"\n\n{'─'*50}\n\n")
+                f.write(render_problem_text(problem.solution_latex))
 
             # 构建消息列表（纯数据，不涉及 UI）
             # 将 LaTeX 渲染为 Unicode 用于终端显示
@@ -409,7 +445,12 @@ class GeometryTUI(App):
                 if line.strip():
                     messages.append(Static(f"  {line}", classes="bot-msg"))
             messages.append(Static(
-                f"\n  ✓ 配图已保存: {img_path}", classes="success"))
+                f"\n  ✓ 已保存到: {question_dir}/"
+                f"\n    ├── diagram.png   (配图)"
+                f"\n    ├── problem.tex   (LaTeX 题干)"
+                f"\n    ├── solution.tex  (LaTeX 解答)"
+                f"\n    └── problem.txt   (纯文本版)",
+                classes="success"))
 
             # 回到主线程更新 UI
             self.call_from_thread(self._append_chat_list, messages)
