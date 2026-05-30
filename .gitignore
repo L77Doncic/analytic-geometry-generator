@@ -29,7 +29,6 @@ Thumbs.db
 
 # Output (keep only a few examples)
 output/*.pptx
-output/技术原理说明文档.md
 
 # Temporary
 *.tmp
@@ -37,3 +36,7 @@ output/技术原理说明文档.md
 create_ppt.py
 create_defense_ppt.py
 output/
+
+# Docs (local only, not pushed to GitHub)
+docs/
+presentation.html
