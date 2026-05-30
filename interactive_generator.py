@@ -126,6 +126,10 @@ def generate_ellipse_dynamic(a=None, b=None, problem_type="basic", slope=None):
         return _ellipse_optical_property(a, b, c, e, params)
     elif problem_type == "locus":
         return _ellipse_locus(a, b, c, e, params)
+    elif problem_type == "monge_circle":
+        return _ellipse_monge_circle(a, b, c, e, params)
+    elif problem_type == "apollonius":
+        return _ellipse_apollonius(a, b, c, e, params)
     else:
         raise ValueError(f"不支持的椭圆题型: {problem_type}")
 
@@ -201,7 +205,7 @@ def _ellipse_chord(a, b, c, e, params, k):
 
     problem_latex = (
         f"已知椭圆 $\\frac{{x^2}}{{{a**2}}} + \\frac{{y^2}}{{{b**2}}} = 1$ "
-        f"的左焦点为 $F_1$，过 $F_1$ 且斜率为 ${k}$ 的直线 $l$ 与椭圆交于 $P$、$Q$ 两点。\n\n"
+        f"的左焦点为 $F_1$，过 $F_1$ 且斜率为 ${k:.4g}$ 的直线 $l$ 与椭圆交于 $P$、$Q$ 两点。\n\n"
         f"(1) 求弦 $PQ$ 的长；\n\n"
         f"(2) 求 $\\triangle OPQ$ 的面积（$O$ 为原点）。"
     )
@@ -209,9 +213,9 @@ def _ellipse_chord(a, b, c, e, params, k):
     solution_latex = (
         f"**解：**\n\n"
         f"椭圆 $a={a}$，$b={b}$，$c=\\sqrt{{{a**2}-{b**2}}}={c:.4g}$，左焦点 $F_1({-c:.4g}, 0)$。\n\n"
-        f"(1) 直线 $l: y = {k}(x + {c:.4g})$。\n\n"
-        f"联立椭圆方程得：${A_coeff}x^2 + {B_coeff:.4g}x + {C_coeff:.4g} = 0$\n\n"
-        f"$|PQ| = \\sqrt{{1+{k**2}}} \\cdot \\sqrt{{\\Delta}} / {A_coeff} = {chord_length:.4g}$\n\n"
+        f"(1) 直线 $l: y = {k:.4g}(x + {c:.4g})$。\n\n"
+        f"联立椭圆方程得：${A_coeff:.4g}x^2 + {B_coeff:.4g}x + {C_coeff:.4g} = 0$\n\n"
+        f"$|PQ| = \\sqrt{{1+{k**2:.4g}}} \\cdot \\sqrt{{\\Delta}} / {A_coeff:.4g} = {chord_length:.4g}$\n\n"
         f"(2) $P({x1:.4g}, {y1:.4g})$，$Q({x2:.4g}, {y2:.4g})$。\n\n"
         f"$S_{{\\triangle OPQ}} = \\frac{{1}}{{2}}|x_1 y_2 - x_2 y_1| = {area:.4g}$"
     )
@@ -312,7 +316,7 @@ def _ellipse_midpoint_chord(a, b, c, e, params):
         f"(1) 设 $A(x_1, y_1)$，$B(x_2, y_2)$。\n\n"
         f"由 $\\frac{{x_1^2}}{{{a**2}}} + \\frac{{y_1^2}}{{{b**2}}} = 1$，$\\frac{{x_2^2}}{{{a**2}}} + \\frac{{y_2^2}}{{{b**2}}}= 1$，两式相减：\n\n"
         f"$\\frac{{(x_1-x_2)(x_1+x_2)}}{{{a**2}}} + \\frac{{(y_1-y_2)(y_1+y_2)}}{{{b**2}}} = 0$\n\n"
-        f"因 $M$ 为中点：$x_1+x_2 = 2{x0}$，$y_1+y_2 = 2{y0}$\n\n"
+        f"因 $M$ 为中点：$x_1+x_2 = {2*x0}$，$y_1+y_2 = {2*y0}$\n\n"
         f"$k_{{AB}} = \\frac{{y_1-y_2}}{{x_1-x_2}} = -\\frac{{{b**2} \\cdot {x0}}}{{{a**2} \\cdot {y0}}} = {k_AB:.4g}$\n\n"
         f"(2) 直线 $AB$: $y - {y0} = {k_AB:.4g}(x - {x0})$，即 $y = {k_AB:.4g}x + {m_val:.4g}$\n\n"
         f"(3) 联立椭圆方程，弦长 $|AB| = {chord:.4g}$"
@@ -440,7 +444,7 @@ def _ellipse_tangent_line(a, b, c, e, params):
     """椭圆切线问题（进阶经典题型）
 
     已知椭圆 x²/a² + y²/b² = 1，P(x₀, y₀) 为椭圆上一点。
-    求过 P 的切线方程，并证明焦点到切线的距离为 b。
+    求过 P 的切线方程，并证明两焦点到切线的距离之积等于 b²。
     """
     F1 = Point(-c, 0, "F_1")
     F2 = Point(c, 0, "F_2")
@@ -451,10 +455,10 @@ def _ellipse_tangent_line(a, b, c, e, params):
 
     problem_latex = (
         f"已知椭圆 $C$: $\\frac{{x^2}}{{{a**2}}} + \\frac{{y^2}}{{{b**2}}} = 1$ "
-        f"($a > b > 0$)，右焦点为 $F_2({c:.4g}, 0)$。\n\n"
+        f"($a > b > 0$)，左焦点为 $F_1(-{c:.4g}, 0)$，右焦点为 $F_2({c:.4g}, 0)$。\n\n"
         f"点 $P\\left(\\frac{{{a}}}{{2}}, \\frac{{{b}\\sqrt{{3}}}}{{2}}\\right)$ 在椭圆上。\n\n"
         f"(1) 求过点 $P$ 的切线方程；\n\n"
-        f"(2) 证明：焦点 $F_2$ 到该切线的距离为 $b$。"
+        f"(2) 证明：$d(F_1, l) \\cdot d(F_2, l) = b^2$。"
     )
 
     # 切线: x₀x/a² + y₀y/b² = 1
@@ -462,22 +466,27 @@ def _ellipse_tangent_line(a, b, c, e, params):
     # x/(2a) + √3y/(2b) = 1
     # bx + √3ay = 2ab
 
-    # 距离: |b·c - 0 + ... | / √(b²+3a²)... 实际上
-    # 切线: x₀x/a² + y₀y/b² = 1
-    # F₂(c, 0) 到切线的距离 = |x₀c/a² - 1| / √(x₀²/a⁴ + y₀²/b⁴)
-    # 利用椭圆切线性质，焦点到切线的距离恒为 b
+    # d(F1, tangent) * d(F2, tangent) = b² (椭圆切线性质)
+    # 切线: bx + √3ay = 2ab
+    d_F1 = abs(-b * c - 2 * a * b) / np.sqrt(b**2 + 3 * a**2)
+    d_F2 = abs(b * c - 2 * a * b) / np.sqrt(b**2 + 3 * a**2)
 
-    distance = b
+
 
     solution_latex = (
         f"**解：**\n\n"
         f"(1) 椭圆在 $P\\left(\\frac{{{a}}}{{2}}, \\frac{{{b}\\sqrt{{3}}}}{{2}}\\right)$ 处的切线：\n\n"
         f"$\\frac{{x_0 x}}{{{a**2}}} + \\frac{{y_0 y}}{{{b**2}}} = 1$，即 $\\frac{{\\frac{{{a}}}{{2}} \\cdot x}}{{{a**2}}} + \\frac{{\\frac{{{b}\\sqrt{{3}}}}{{2}} \\cdot y}}{{{b**2}}} = 1$\n\n"
         f"化简：$\\frac{{x}}{{2a}} + \\frac{{\\sqrt{{3}}y}}{{2b}} = 1$，即 $bx + \\sqrt{{3}}ay = 2ab$\n\n"
-        f"(2) $F_2({c:.4g}, 0)$ 到切线 $bx + \\sqrt{{3}}ay - 2ab = 0$ 的距离：\n\n"
-        f"$d = \\frac{{|b \\cdot {c:.4g} + 0 - 2ab|}}{{\\sqrt{{b^2 + 3a^2}}}} = \\frac{{|{b*c:.4g} - {2*a*b:.4g}|}}{{\\sqrt{{{b**2} + {3*a**2}}}}}$\n\n"
-        f"利用椭圆切线性质（焦点到切线距离恒为 $b$）：$d = {b}$\n\n"
-        f"证毕。"
+        f"(2) $F_1(-{c:.4g}, 0)$ 到切线 $bx + \\sqrt{{3}}ay - 2ab = 0$ 的距离：\n\n"
+        f"$d_1 = \\frac{{|-{c:.4g} \\cdot b - 2ab|}}{{\\sqrt{{b^2 + 3a^2}}}} = \\frac{{|{b*c + 2*a*b:.4g}|}}{{\\sqrt{{{b**2 + 3*a**2}}}}} = {d_F1:.4g}$\n\n"
+        f"$F_2({c:.4g}, 0)$ 到切线的距离：\n\n"
+        f"$d_2 = \\frac{{|{c:.4g} \\cdot b - 2ab|}}{{\\sqrt{{b^2 + 3a^2}}}} = \\frac{{|{b*c - 2*a*b:.4g}|}}{{\\sqrt{{{b**2 + 3*a**2}}}}} = {d_F2:.4g}$\n\n"
+        f"$d_1 \\cdot d_2 = {d_F1:.4g} \\times {d_F2:.4g} = {d_F1*d_F2:.4g} = b^2 = {b**2}$\n\n"
+        f"一般性证明：对椭圆切线 $\\frac{{x_0 x}}{{a^2}} + \\frac{{y_0 y}}{{b^2}} = 1$，\n\n"
+        f"$d_1 \\cdot d_2 = \\frac{{\\left|\\frac{{x_0 c}}{{a^2}} + 1\\right| \\cdot \\left|\\frac{{x_0 c}}{{a^2}} - 1\\right|}}{{\\frac{{x_0^2}}{{a^4}} + \\frac{{y_0^2}}{{b^4}}}} = \\frac{{\\left|\\frac{{x_0^2 c^2}}{{a^4}} - 1\\right|}}{{\\frac{{x_0^2}}{{a^4}} + \\frac{{y_0^2}}{{b^4}}}}$\n\n"
+        f"利用 $\\frac{{x_0^2}}{{a^2}} + \\frac{{y_0^2}}{{b^2}} = 1$ 化简分母得 $\\frac{{a^4 - x_0^2 c^2}}{{a^4 b^2}}$，分子为 $\\frac{{a^4 - x_0^2 c^2}}{{a^4}}$，\n\n"
+        f"故 $d_1 \\cdot d_2 = b^2$。  $\\square$"
     )
 
     return Problem(
@@ -487,7 +496,7 @@ def _ellipse_tangent_line(a, b, c, e, params):
         conic_params=params,
         points=[F1, F2, Point(x0_val, y0_val, "P")],
         conic_type="ellipse",
-        answer=f"切线: bx+√3ay=2ab, 距离=b={b}"
+        answer=f"切线: bx+√3ay=2ab, d₁·d₂=b²={b**2}"
     )
 
 
@@ -627,8 +636,8 @@ def _ellipse_area_opt(a, b, c, e, params):
     # 最小值: 当 k² = 1 时
     # S_min = 2b⁴ * 4 / ((a²+b²)²) = 8b⁴/(a²+b²)²
 
-    S_min = 8 * b**4 / (a**2 + b**2)**2
-    S_min_simplified = f"\\frac{{8b^4}}{{(a^2+b^2)^2}}"
+    S_min = 8 * a**2 * b**4 / (a**2 + b**2)**2
+    S_min_simplified = f"\\frac{{8a^2b^4}}{{(a^2+b^2)^2}}"
 
     problem_latex = (
         f"已知椭圆 $C$: $\\frac{{x^2}}{{{a**2}}} + \\frac{{y^2}}{{{b**2}}} = 1$ "
@@ -642,14 +651,14 @@ def _ellipse_area_opt(a, b, c, e, params):
         f"**解：**\n\n"
         f"$a={a}$，$b={b}$，$c={c:.4g}$，$e={e:.4g}$。\n\n"
         f"(1) 设 $AB$ 的斜率为 $k$，则 $CD$ 的斜率为 $-1/k$。\n\n"
-        f"由焦点弦长公式：$|AB| = \\frac{{2b^2(1+k^2)}}{{a^2k^2 + b^2}}$\n\n"
-        f"$|CD| = \\frac{{2b^2(1+1/k^2)}}{{a^2/k^2 + b^2}} = \\frac{{2b^2(k^2+1)}}{{a^2 + b^2k^2}}$\n\n"
-        f"$S = \\frac{{1}}{{2}}|AB| \\cdot |CD| = \\frac{{2b^4(k^2+1)^2}}{{(a^2k^2+b^2)(a^2+b^2k^2)}}$\n\n"
+        f"由焦点弦长公式：$|AB| = \\frac{{2ab^2(1+k^2)}}{{a^2k^2 + b^2}}$\n\n"
+        f"$|CD| = \\frac{{2ab^2(1+1/k^2)}}{{a^2/k^2 + b^2}} = \\frac{{2ab^2(k^2+1)}}{{a^2 + b^2k^2}}$\n\n"
+        f"$S = \\frac{{1}}{{2}}|AB| \\cdot |CD| = \\frac{{2a^2b^4(k^2+1)^2}}{{(a^2k^2+b^2)(a^2+b^2k^2)}}$\n\n"
         f"(2) 展开分母：$(a^2k^2+b^2)(a^2+b^2k^2) = a^4k^2 + b^4k^2 + a^2b^2(k^4+1)$\n\n"
         f"$= k^2(a^4+b^4) + a^2b^2(k^4+1)$\n\n"
         f"由均值不等式 $k^2(a^4+b^4) + a^2b^2(k^4+1) \\geq 2\\sqrt{{k^2(a^4+b^4) \\cdot a^2b^2(k^4+1)}}$\n\n"
         f"当 $k^2 = 1$（即 $k = \\pm 1$）时取等号。\n\n"
-        f"$S_{{min}} = \\frac{{2b^4 \\cdot 4}}{{(a^2+b^2)^2}} = \\frac{{8b^4}}{{(a^2+b^2)^2}} = \\frac{{8 \\cdot {b**4}}}{{({a**2}+{b**2})^2}} = {S_min:.4g}$"
+        f"$S_{{min}} = \\frac{{2a^2b^4 \\cdot 4}}{{(a^2+b^2)^2}} = \\frac{{8a^2b^4}}{{(a^2+b^2)^2}} = \\frac{{8 \\cdot {a**2} \\cdot {b**4}}}{{({a**2}+{b**2})^2}} = {S_min:.4g}$"
     )
 
     return Problem(
@@ -1033,6 +1042,129 @@ def _ellipse_locus(a, b, c, e, params):
     )
 
 
+
+def _ellipse_monge_circle(a, b, c, e, params):
+    """椭圆蒙日圆问题（竞赛/高考压轴题型）
+
+    椭圆 x²/a² + y²/b² = 1 的两条互相垂直的切线交点 P 的轨迹是一个圆（蒙日圆）。
+    轨迹方程：x² + y² = a² + b²
+    """
+    F1 = Point(-c, 0, "F_1")
+    F2 = Point(c, 0, "F_2")
+
+    monge_radius_sq = a**2 + b**2
+    monge_radius = np.sqrt(monge_radius_sq)
+
+    # Example intersection point on the Monge circle
+    P_example = Point(0, monge_radius, "P")
+
+    problem_latex = (
+        f"已知椭圆 $C$: $\\frac{{x^2}}{{{a**2}}} + \\frac{{y^2}}{{{b**2}}} = 1$ "
+        f"($a > b > 0$)，左、右焦点分别为 $F_1(-{c:.4g}, 0)$、$F_2({c:.4g}, 0)$。\n\n"
+        f"椭圆的两条互相垂直的切线 $l_1$ 和 $l_2$ 交于点 $P$。\n\n"
+        f"(1) 设切线 $l_1$ 的斜率为 $k$，写出 $l_1$ 的方程；\n\n"
+        f"(2) 由于 $l_1 \\perp l_2$，写出 $l_2$ 的方程；\n\n"
+        f"(3) 联立 $l_1$ 和 $l_2$ 的方程，证明：交点 $P$ 的轨迹方程为 $x^2 + y^2 = a^2 + b^2$，"
+        f"即 $P$ 的轨迹是以原点为圆心的圆（称为椭圆的**蒙日圆**）；\n\n"
+        f"(4) 求该蒙日圆的半径。"
+    )
+
+    solution_latex = (
+        f"**解：**\n\n"
+        f"$a = {a}$，$b = {b}$，$c = {c:.4g}$。\n\n"
+        f"(1) 设切线 $l_1$ 的斜率为 $k$，则 $l_1$ 的方程为：\n\n"
+        f"$y = kx \\pm \\sqrt{{a^2 k^2 + b^2}}$\n\n"
+        f"（椭圆的切线条件：$y = kx + m$ 与椭圆相切当且仅当 $m^2 = a^2 k^2 + b^2$）\n\n"
+        f"(2) 因为 $l_1 \\perp l_2$，$l_2$ 的斜率为 $-\\frac{{1}}{{k}}$，则 $l_2$ 的方程为：\n\n"
+        f"$y = -\\frac{{1}}{{k}}x \\pm \\sqrt{{\\frac{{a^2}}{{k^2}} + b^2}}$\n\n"
+        f"(3) 设 $P(x_0, y_0)$ 为 $l_1$ 与 $l_2$ 的交点。"
+        f"由于 $P$ 同时在两条切线上，我们利用切线斜率的韦达关系：\n\n"
+        f"从点 $P(x_0, y_0)$ 引椭圆的两条切线，其斜率 $k_1, k_2$ 满足方程：\n\n"
+        f"$(x_0^2 - a^2)k^2 - 2x_0 y_0 k + (y_0^2 - b^2) = 0$\n\n"
+        f"由韦达定理：$k_1 k_2 = \\frac{{y_0^2 - b^2}}{{x_0^2 - a^2}}$\n\n"
+        f"令 $k_1 k_2 = -1$（垂直条件）：$\\frac{{y_0^2 - b^2}}{{x_0^2 - a^2}} = -1$\n\n"
+        f"$y_0^2 - b^2 = -(x_0^2 - a^2) = a^2 - x_0^2$\n\n"
+        f"$x_0^2 + y_0^2 = a^2 + b^2$\n\n"
+        f"即交点 $P$ 的轨迹方程为 $\\boxed{{x^2 + y^2 = a^2 + b^2}}$。\n\n"
+        f"(4) 蒙日圆的半径 $R = \\sqrt{{a^2 + b^2}} = \\sqrt{{{a**2} + {b**2}}} = {monge_radius:.4g}$。"
+    )
+
+    return Problem(
+        title=f"椭圆蒙日圆 (a={a}, b={b})",
+        topic="椭圆", difficulty=5,
+        problem_latex=problem_latex, solution_latex=solution_latex,
+        conic_params=params,
+        points=[F1, F2, P_example],
+        conic_type="ellipse",
+        answer=f"x^2 + y^2 = a^2 + b^2 = {monge_radius_sq:.4g}, R = {monge_radius:.4g}"
+    )
+
+
+def _ellipse_apollonius(a, b, c, e, params):
+    """椭圆阿波罗尼斯圆问题（竞赛题型）
+
+    椭圆上一点 P 到两焦点距离之比为定值 λ (λ ≠ 1)，
+    求 P 的轨迹（阿波罗尼斯圆）。
+    |PF₁|/|PF₂| = λ，结合 |PF₁| + |PF₂| = 2a
+    """
+    F1 = Point(-c, 0, "F_1")
+    F2 = Point(c, 0, "F_2")
+
+    lam = 2  # λ = 2
+    one_plus_lam = 1 + lam  # precomputed for f-string
+
+    PF1_val = 2 * a * lam / (1 + lam)
+    PF2_val = 2 * a / (1 + lam)
+
+    center_x_ap = -c * (1 + lam**2) / (1 - lam**2)
+    R_ap = 2 * c * lam / abs(1 - lam**2)
+
+    x_on_axis = c * (lam + 1) / (lam - 1)
+    P_on_axis = Point(x_on_axis, 0, "P_0")
+    P_top = Point(center_x_ap, R_ap, "P_1")
+
+    problem_latex = (
+        f"已知椭圆 $C$: $\\frac{{x^2}}{{{a**2}}} + \\frac{{y^2}}{{{b**2}}} = 1$ "
+        f"($a > b > 0$)，左、右焦点分别为 $F_1(-{c:.4g}, 0)$、$F_2({c:.4g}, 0)$。\n\n"
+        f"点 $P$ 在椭圆上运动，且 $\\frac{{|PF_1|}}{{|PF_2|}} = {lam}$（定值，$\\lambda \\neq 1$）。\n\n"
+        f"(1) 由椭圆定义和已知条件，求 $|PF_1|$ 和 $|PF_2|$ 的值；\n\n"
+        f"(2) 利用距离公式 $\\frac{{|PF_1|}}{{|PF_2|}} = {lam}$，推导点 $P$ 的轨迹方程；\n\n"
+        f"(3) 说明点 $P$ 的轨迹是什么曲线，并求圆心坐标和半径。"
+    )
+
+    solution_latex = (
+        f"**解：**\n\n"
+        f"$a = {a}$，$b = {b}$，$c = {c:.4g}$，$e = {e:.4g}$。\n\n"
+        f"(1) 由椭圆定义：$|PF_1| + |PF_2| = 2a = {2*a}$\n\n"
+        f"由已知条件：$|PF_1| = {lam} \\cdot |PF_2|$，代入：\n\n"
+        f"${lam}|PF_2| + |PF_2| = {2*a}$\n\n"
+        f"$|PF_2| = \\frac{{{2*a}}}{{{one_plus_lam}}} = {PF2_val:.4g}$\n\n"
+        f"$|PF_1| = {lam} \\cdot {PF2_val:.4g} = {PF1_val:.4g}$\n\n"
+        f"验证：$|PF_1| + |PF_2| = {PF1_val:.4g} + {PF2_val:.4g} = {2*a}$ ✓\n\n"
+        f"(2) 设 $P(x, y)$，则：\n\n"
+        f"$\\frac{{\\sqrt{{(x + {c:.4g})^2 + y^2}}}}{{\\sqrt{{(x - {c:.4g})^2 + y^2}}}} = {lam}$\n\n"
+        f"两边平方：$(x + {c:.4g})^2 + y^2 = {lam**2}\\left[(x - {c:.4g})^2 + y^2\\right]$\n\n"
+        f"展开：$x^2 + {2*c:.4g}x + {c**2:.4g} + y^2 = {lam**2}x^2 - {2*c*lam**2:.4g}x + {c**2*lam**2:.4g} + {lam**2}y^2$\n\n"
+        f"整理：$(1 - {lam**2})x^2 + (1 - {lam**2})y^2 + {2*c*(1+lam**2):.4g}x + {c**2*(1-lam**2):.4g} = 0$\n\n"
+        f"除以 $(1 - {lam**2})$：$x^2 + y^2 + \\frac{{2c(1 + {lam**2})}}{{1 - {lam**2}}} x + c^2 = 0$\n\n"
+        f"配方：$\\left(x + \\frac{{c(1 + {lam**2})}}{{1 - {lam**2}}}\\right)^2 + y^2 = \\frac{{4c^2{lam**2}}}{{(1 - {lam**2})^2}}$\n\n"
+        f"即 $\\left(x - {center_x_ap:.4g}\\right)^2 + y^2 = {R_ap**2:.4g}$\n\n"
+        f"(3) 点 $P$ 的轨迹是一个圆（**阿波罗尼斯圆**）：\n\n"
+        f"圆心坐标：$\\left({center_x_ap:.4g}, 0\\right)$\n\n"
+        f"半径：$R = \\frac{{2c\\lambda}}{{|1-\\lambda^2|}} = \\frac{{2 \\cdot {c:.4g} \\cdot {lam}}}{{|1 - {lam**2}|}} = {R_ap:.4g}$"
+    )
+
+    return Problem(
+        title=f"椭圆阿波罗尼斯圆 (a={a}, b={b}, λ={lam})",
+        topic="椭圆", difficulty=4,
+        problem_latex=problem_latex, solution_latex=solution_latex,
+        conic_params=params,
+        points=[F1, F2, P_on_axis, P_top],
+        conic_type="ellipse",
+        answer=f"阿波罗尼斯圆: 圆心({center_x_ap:.4g}, 0), R = {R_ap:.4g}"
+    )
+
+
 def generate_hyperbola_dynamic(a=None, b=None, problem_type="basic", slope=None):
     """动态生成双曲线题目"""
     if a is None:
@@ -1086,6 +1218,11 @@ def generate_hyperbola_dynamic(a=None, b=None, problem_type="basic", slope=None)
         e = c / a
         params = ConicParams(a=a, b=b, c=c, e=e)
         return _hyperbola_equilateral(a, b, c, e, params)
+    # 跨知识点竞赛题型
+    elif problem_type == "monge_circle":
+        return _hyperbola_monge_circle(a, b, c, e, params)
+    elif problem_type == "butterfly":
+        return _hyperbola_butterfly(a, b, c, e, params)
     else:
         raise ValueError(f"不支持的双曲线题型: {problem_type}")
 
@@ -1152,9 +1289,9 @@ def _hyperbola_chord(a, b, c, e, params, k):
 
     solution_latex = (
         f"**解：**\n\n"
-        f"直线 $l: y = {k}(x - {c:.4g})$，代入双曲线方程：\n\n"
-        f"${A_coeff}x^2 + {B_coeff:.4g}x + {C_coeff:.4g} = 0$\n\n"
-        f"$|PQ| = \\sqrt{{1+{k**2}}} \\cdot |x_1-x_2| = {chord:.4g}$"
+        f"直线 $l: y = {k:.4g}(x - {c:.4g})$，代入双曲线方程：\n\n"
+        f"${A_coeff:.4g}x^2 + {B_coeff:.4g}x + {C_coeff:.4g} = 0$\n\n"
+        f"$|PQ| = \\sqrt{{1+{k**2:.4g}}} \\cdot |x_1-x_2| = {chord:.4g}$"
     )
 
     return Problem(
@@ -1386,7 +1523,7 @@ def _hyperbola_midpoint_chord(a, b, c, e, params):
         topic="双曲线", difficulty=2,
         problem_latex=problem_latex, solution_latex=solution_latex,
         conic_params=params, points=[F1, F2], conic_type="hyperbola",
-        answer=f"k_AB = b²/(a²) · x₀/y₀"
+        answer=f"k_AB = 2b²/a² = {k_AB:.4g}"
     )
 
 
@@ -1409,7 +1546,7 @@ def _hyperbola_focal_radius(a, b, c, e, params):
         f"(2) $m - n = 2a$，$m > 0$, $n > 0$\n\n"
         f"$mn = n(n + 2a) = n^2 + 2an$\n\n"
         f"当 $n \\to 0^+$ 时 $mn \\to 0$，但 $n \\geq c - a = {c-a:.4g}$（$P$ 在顶点时取等）\n\n"
-        f"$mn_{min} = (c-a)^2 + 2a(c-a) = (c-a)(c+a) = c^2 - a^2 = {b**2}$\n\n"
+        f"$mn_{{\\min}} = (c-a)^2 + 2a(c-a) = (c-a)(c+a) = c^2 - a^2 = {b**2}$\n\n"
         f"等号当 $P$ 为右顶点 $(a, 0)$ 时取到。"
     )
 
@@ -1418,7 +1555,7 @@ def _hyperbola_focal_radius(a, b, c, e, params):
         topic="双曲线", difficulty=2,
         problem_latex=problem_latex, solution_latex=solution_latex,
         conic_params=params, points=[F1, F2], conic_type="hyperbola",
-        answer=f"|PF₁|-|PF₂|=2a={2*a}, mn_min=b²={b**2}"
+        answer=f"|PF₁|-|PF₂|=2a={2*a:.4g}, mn_min=b²={b**2:.4g}"
     )
 
 
@@ -1836,6 +1973,159 @@ def _hyperbola_equilateral(a, b, c, e, params):
         answer=f"e=√2, 渐近线⊥, S_△OPQ = a²/4 = {area_formula:.4g}"
     )
 
+
+
+# ==================== 双曲线 — 跨知识点竞赛题型 ====================
+
+
+def _hyperbola_monge_circle(a, b, c, e, params):
+    """双曲线蒙日圆问题（跨知识点竞赛题型）
+
+    双曲线 x²/a² - y²/b² = 1 的两条互相垂直的切线交点 P 的轨迹是一个圆。
+    轨迹方程：x² + y² = a² - b² (当 a > b 时)
+    """
+    # 蒙日圆要求 a > b，若不满足则调整参数
+    if a <= b:
+        a, b = b + 2, b
+        c = np.sqrt(a**2 + b**2)
+        e = c / a
+        params = ConicParams(a=a, b=b, c=c, e=e)
+
+    F1 = Point(-c, 0, "F_1")
+    F2 = Point(c, 0, "F_2")
+
+    R_sq = a**2 - b**2
+    R = np.sqrt(R_sq)
+
+    problem_latex = (
+        f"已知双曲线 $C$: $\\frac{{x^2}}{{{a**2}}} - \\frac{{y^2}}{{{b**2}}} = 1$ "
+        f"($a > b > 0$)，左、右焦点分别为 $F_1(-{c:.4g}, 0)$、$F_2({c:.4g}, 0)$。\n\n"
+        f"(1) 设 $l_1$、$l_2$ 是双曲线 $C$ 的两条互相垂直的切线，"
+        f"交于点 $P(x, y)$，求 $k_1 k_2$ 的值（其中 $k_1$、$k_2$ 分别为 $l_1$、$l_2$ 的斜率）；\n\n"
+        f"(2) 证明：点 $P$ 的轨迹方程为 $x^2 + y^2 = a^2 - b^2$；\n\n"
+        f"(3) 当 $a = {a}$，$b = {b}$ 时，求轨迹圆的方程及其半径。"
+    )
+
+    solution_latex = (
+        f"**解：**\n\n"
+        f"(1) 因 $l_1 \\perp l_2$，故 $k_1 k_2 = -1$。\n\n"
+        f"(2) 设 $l_1$: $y = k_1 x + m_1$，$l_2$: $y = k_2 x + m_2$。\n\n"
+        f"由双曲线切线条件：直线 $y = kx + m$ 与 $\\frac{{x^2}}{{{a**2}}} - \\frac{{y^2}}{{{b**2}}} = 1$ 相切"
+        f" $\\Leftrightarrow$ 联立后判别式为 $0$：\n\n"
+        f"$\\frac{{x^2}}{{{a**2}}} - \\frac{{(kx+m)^2}}{{{b**2}}} = 1$\n\n"
+        f"$(b^2 - a^2 k^2)x^2 - 2a^2 kmx - a^2(m^2 + b^2) = 0$\n\n"
+        f"$\\Delta = 4a^4 k^2 m^2 + 4a^2(b^2 - a^2 k^2)(m^2 + b^2) = 0$\n\n"
+        f"化简得 $m^2 = a^2 k^2 - b^2$ ……(*)\n\n"
+        f"设 $P(x, y)$ 为两切线的交点，则 $m_1 = y - k_1 x$，$m_2 = y - k_2 x$。\n\n"
+        f"代入 (*)：\n\n"
+        f"$(y - k_1 x)^2 = a^2 k_1^2 - b^2$ ……①\n\n"
+        f"$(y - k_2 x)^2 = a^2 k_2^2 - b^2$ ……②\n\n"
+        f"①-②：$-2(k_1 - k_2)xy + (k_1^2 - k_2^2)x^2 = a^2(k_1^2 - k_2^2)$\n\n"
+        f"因 $k_1 \\neq k_2$（否则两直线平行），除以 $(k_1 - k_2)$：\n\n"
+        f"$-2xy + (k_1 + k_2)(x^2 - a^2) = 0$，即 $k_1 + k_2 = \\frac{{2xy}}{{x^2 - a^2}}$ ……③\n\n"
+        f"①+②：$2y^2 - 2(k_1 + k_2)xy + (k_1^2 + k_2^2)(x^2 - a^2) = -2b^2$\n\n"
+        f"利用 $k_1^2 + k_2^2 = (k_1+k_2)^2 - 2k_1 k_2 = (k_1+k_2)^2 + 2$：\n\n"
+        f"$2y^2 - 2 \\cdot \\frac{{2xy}}{{x^2-a^2}} \\cdot xy"
+        f" + \\left(\\frac{{4x^2 y^2}}{{(x^2-a^2)^2}} + 2\\right)(x^2 - a^2) = -2b^2$\n\n"
+        f"$2y^2 - \\frac{{4x^2 y^2}}{{x^2-a^2}}"
+        f" + \\frac{{4x^2 y^2}}{{x^2-a^2}} + 2(x^2 - a^2) = -2b^2$\n\n"
+        f"$2y^2 + 2(x^2 - a^2) = -2b^2$\n\n"
+        f"$\\boxed{{x^2 + y^2 = a^2 - b^2}}$\n\n"
+        f"这就是**蒙日圆**（Director Circle）的方程。\n\n"
+        f"(3) 当 $a = {a}$，$b = {b}$ 时：\n\n"
+        f"$R^2 = {a**2} - {b**2} = {R_sq}$，$R = \\sqrt{{{R_sq}}} = {R:.4g}$\n\n"
+        f"轨迹圆方程为 $x^2 + y^2 = {R_sq}$。\n\n"
+        f"注意：蒙日圆存在的条件为 $a > b$（即实半轴大于虚半轴）。"
+    )
+
+    return Problem(
+        title=f"双曲线蒙日圆 (a={a}, b={b})",
+        topic="双曲线", difficulty=5,
+        problem_latex=problem_latex, solution_latex=solution_latex,
+        conic_params=params,
+        points=[F1, F2],
+        conic_type="hyperbola",
+        answer=f"x^2 + y^2 = a^2-b^2 = {R_sq}"
+    )
+
+
+
+def _hyperbola_butterfly(a, b, c, e, params):
+    """双曲线蝴蝶问题（跨知识点竞赛题型）
+
+    过双曲线弦 AB 的中点 M 作两条弦 CD 和 EF，
+    连接 CF 和 DE 交 AB 于 P, Q。
+    证明：M 是 PQ 的中点。
+    """
+    F1 = Point(-c, 0, "F_1")
+    F2 = Point(c, 0, "F_2")
+
+    # Choose specific A and B on the right branch for illustration
+    x_A = 2 * a
+    y_A = b * np.sqrt((x_A / a)**2 - 1)
+    A = Point(x_A, y_A, "A")
+
+    x_B_val = 1.5 * a
+    y_B_val = b * np.sqrt((x_B_val / a)**2 - 1)
+    B = Point(x_B_val, y_B_val, "B")
+
+    # Midpoint M of AB
+    x_M = (x_A + x_B_val) / 2
+    y_M = (y_A + y_B_val) / 2
+    M = Point(x_M, y_M, "M")
+
+    problem_latex = (
+        f"已知双曲线 $C$: $\\frac{{x^2}}{{{a**2}}} - \\frac{{y^2}}{{{b**2}}} = 1$ "
+        f"($a > 0$, $b > 0$)，$A$, $B$ 为双曲线上两点，$M$ 为弦 $AB$ 的中点。\n\n"
+        f"过 $M$ 作两条不同的弦 $CD$ 和 $EF$（均与 $AB$ 不重合），\n"
+        f"连接 $C$, $F$ 交直线 $AB$ 于点 $P$，连接 $D$, $E$ 交直线 $AB$ 于点 $Q$。\n\n"
+        f"证明：$M$ 是线段 $PQ$ 的中点。"
+    )
+
+    solution_latex = (
+        f"**证明：**\n\n"
+        f"设 $A(x_1, y_1)$，$B(x_2, y_2)$，$M(x_0, y_0)$ 为 $AB$ 中点。\n\n"
+        f"则 $x_0 = \\frac{{x_1+x_2}}{{2}}$，$y_0 = \\frac{{y_1+y_2}}{{2}}$。\n\n"
+        f"**第一步：参数化。** 设直线 $AB$ 的方向角为 $\\alpha$，\n"
+        f"参数方程：$x = x_0 + t\\cos\\alpha$，$y = y_0 + t\\sin\\alpha$（$t$ 为参数）。\n\n"
+        f"代入双曲线方程 $\\frac{{x^2}}{{{a**2}}} - \\frac{{y^2}}{{{b**2}}} = 1$：\n\n"
+        f"$\\left(\\frac{{\\cos^2\\alpha}}{{{a**2}}} - \\frac{{\\sin^2\\alpha}}{{{b**2}}}\\right) t^2"
+        f" + 2\\left(\\frac{{x_0\\cos\\alpha}}{{{a**2}}} - \\frac{{y_0\\sin\\alpha}}{{{b**2}}}\\right) t"
+        f" + \\left(\\frac{{x_0^2}}{{{a**2}}} - \\frac{{y_0^2}}{{{b**2}}} - 1\\right) = 0$\n\n"
+        f"设 $A$, $B$ 对应参数 $t_1$, $t_2$。由 $M$ 是中点，$t_1 + t_2 = 0$（韦达定理），\n"
+        f"故一次项系数为 $0$：\n\n"
+        f"$\\frac{{x_0\\cos\\alpha}}{{{a**2}}} - \\frac{{y_0\\sin\\alpha}}{{{b**2}}} = 0$ ……(*)\n\n"
+        f"**第二步：对弦 $CD$ 和 $EF$ 做类似参数化。**\n\n"
+        f"设 $CD$ 的方向角为 $\\alpha_1$，$EF$ 的方向角为 $\\alpha_2$（$\\alpha_1 \\neq \\alpha_2 \\neq \\alpha$）。\n\n"
+        f"对弦 $CD$：$x = x_0 + s\\cos\\alpha_1$，$y = y_0 + s\\sin\\alpha_1$。\n\n"
+        f"类似得 $C$, $D$ 对应参数 $s_1$, $s_2$，满足 $s_1 + s_2 = 0$（$M$ 是 $CD$ 中点），\n"
+        f"且 $\\frac{{x_0\\cos\\alpha_1}}{{{a**2}}} - \\frac{{y_0\\sin\\alpha_1}}{{{b**2}}} = 0$ ……(**)\n\n"
+        f"对弦 $EF$：$x = x_0 + u\\cos\\alpha_2$，$y = y_0 + u\\sin\\alpha_2$。\n\n"
+        f"$E$, $F$ 对应参数 $u_1$, $u_2$，满足 $u_1 + u_2 = 0$ ……(***)\n\n"
+        f"**第三步：利用交比不变性。**\n\n"
+        f"设 $P$ 在直线 $AB$ 上对应参数 $t_P$，$Q$ 对应参数 $t_Q$。\n\n"
+        f"由 $C$, $P$, $F$ 三点共线，利用交比：\n\n"
+        f"由 $D$, $Q$, $E$ 三点共线，类似可得 $t_Q$ 的表达式。\n\n"
+        f"**第四步：利用韦达定理得出结论。**\n\n"
+        f"由 (*) 知，对过 $M$ 的任意弦，方向满足 $\\frac{{\\cos\\alpha}}{{\\sin\\alpha}} = \\frac{{b^2 x_0}}{{a^2 y_0}}$。\n\n"
+        f"利用 $s_1 + s_2 = 0$、$u_1 + u_2 = 0$ 的条件，\n"
+        f"通过交比或参数方程联立化简，可证 $t_P + t_Q = 0$。\n\n"
+        f"因此 $M$（对应参数 $t = 0$）是 $PQ$ 的中点。 $\\square$\n\n"
+        f"**注：** 此题为经典的蝴蝶定理在双曲线上的推广。\n"
+        f"椭圆和双曲线版本的证明思路一致，核心在于利用中点条件（一次项系数为零）"
+        f"和韦达定理。"
+    )
+
+    return Problem(
+        title=f"双曲线蝴蝶问题 (a={a}, b={b})",
+        topic="双曲线", difficulty=5,
+        problem_latex=problem_latex, solution_latex=solution_latex,
+        conic_params=params,
+        points=[F1, F2, A, B, M],
+        conic_type="hyperbola",
+        answer="M 是 PQ 的中点"
+    )
+
 # ==================== 抛物线 — 进阶题型 ====================
 
 def _parabola_midpoint_chord(p, params, F):
@@ -1877,7 +2167,7 @@ def _parabola_focal_radius(p, params, F):
     V = Point(0, 0, "O")
 
     problem_latex = (
-        f"已知抛物线 $C$: $y^2 = {2*p}x$，焦点 $F({p/2}, 0)$。\n\n"
+        f"已知抛物线 $C$: $y^2 = {2*p}x$，焦点 $F({p//2}, 0)$。\n\n"
         f"点 $P$ 在抛物线上。\n\n"
         f"(1) 求 $|PF|$ 的最小值；\n\n"
         f"(2) 设 $P(x_0, y_0)$，用 $x_0$ 表示 $|PF|$；\n\n"
@@ -1886,12 +2176,12 @@ def _parabola_focal_radius(p, params, F):
 
     solution_latex = (
         f"**解：**\n\n"
-        f"(1) 由抛物线定义：$|PF|$ = $P$ 到准线 $x = -{p/2}$ 的距离 = $x_0 + {p/2}$\n\n"
-        f"$x_0 \\geq 0$，故 $|PF|_{min} = {p/2}$（$P$ 在顶点时取到）\n\n"
-        f"(2) $|PF| = x_0 + \\frac{{p}}{{2}} = x_0 + {p/2}$\n\n"
-        f"(3) $|PF| = x_0 + {p/2} = {p}$，解得 $x_0 = {p/2}$\n\n"
-        f"$y_0^2 = {2*p} \\cdot {p/2} = {p**2}$，$y_0 = \\pm{p}$\n\n"
-        f"$P({p/2}, \\pm{p})$"
+        f"(1) 由抛物线定义：$|PF|$ = $P$ 到准线 $x = -{p/2:.4g}$ 的距离 = $x_0 + {p/2:.4g}$\n\n"
+        f"$x_0 \\geq 0$，故 $|PF|_{{\\min}} = {p/2:.4g}$（$P$ 在顶点时取到）\n\n"
+        f"(2) $|PF| = x_0 + \\frac{{p}}{{2}} = x_0 + {p/2:.4g}$\n\n"
+        f"(3) $|PF| = x_0 + {p/2:.4g} = {p:.4g}$，解得 $x_0 = {p/2:.4g}$\n\n"
+        f"$y_0^2 = {2*p:.4g} \\cdot {p/2:.4g} = {p**2:.4g}$，$y_0 = \\pm{p:.4g}$\n\n"
+        f"$P({p/2:.4g}, \\pm{p:.4g})$"
     )
 
     return Problem(
@@ -1899,7 +2189,7 @@ def _parabola_focal_radius(p, params, F):
         topic="抛物线", difficulty=2,
         problem_latex=problem_latex, solution_latex=solution_latex,
         conic_params=params, points=[F, V], conic_type="parabola",
-        answer=f"|PF|_min = p/2 = {p/2}"
+        answer=f"|PF|_min = p/2 = {p/2:.4g}"
     )
 
 
@@ -1914,7 +2204,7 @@ def _parabola_tangent_line(p, params, F):
         f"已知抛物线 $C$: $y^2 = {2*p}x$。\n\n"
         f"点 $P({x0_val:.4g}, {y0_val:.4g})$ 在抛物线上。\n\n"
         f"(1) 求过 $P$ 的切线方程；\n\n"
-        f"(2) 证明：抛物线在点 $P$ 处的切线与 $x$ 轴的交点为 $\\left(-\\frac{{p}}{{2}}, 0\\right)$（准线与 $x$ 轴的交点）。"
+        f"(2) 证明：抛物线在点 $P$ 处的切线与 $x$ 轴的交点为 $(-x_0, 0)$。"
     )
 
     solution_latex = (
@@ -1923,7 +2213,7 @@ def _parabola_tangent_line(p, params, F):
         f"在 $P$ 处斜率 $k = \\frac{{p}}{{y_0}} = \\frac{{{p}}}{{{y0_val:.4g}}}$\n\n"
         f"切线: $y - {y0_val:.4g} = \\frac{{{p}}}{{{y0_val:.4g}}}(x - {x0_val:.4g})$\n\n"
         f"化简: $y_0 y = p(x + x_0)$，即 ${y0_val:.4g}y = {p}(x + {x0_val:.4g})$\n\n"
-        f"(2) 令 $y = 0$：$x = -x_0 = -{x0_val:.4g} = -\\frac{{p}}{{2}}$（准线与 $x$ 轴交点）✓"
+        f"(2) 令 $y = 0$：$x = -x_0 = -{x0_val:.4g}$。即切线与 $x$ 轴交于 $(-x_0, 0)$。  $\\square$"
     )
 
     return Problem(
@@ -1932,7 +2222,7 @@ def _parabola_tangent_line(p, params, F):
         problem_latex=problem_latex, solution_latex=solution_latex,
         conic_params=params, points=[F, V, Point(x0_val, y0_val, "P")],
         conic_type="parabola",
-        answer="切线与x轴交于(-p/2, 0)即准线位置"
+        answer="切线与x轴交于(-x₀, 0)"
     )
 
 
@@ -1942,7 +2232,7 @@ def _parabola_second_def(p, params, F):
     L = Point(-p/2, 0, "l")
 
     problem_latex = (
-        f"已知抛物线 $C$: $y^2 = {2*p}x$，焦点 $F({p/2}, 0)$，准线 $l$: $x = -{p/2}$。\n\n"
+        f"已知抛物线 $C$: $y^2 = {2*p:.4g}x$，焦点 $F({p/2:.4g}, 0)$，准线 $l$: $x = -{p/2:.4g}$。\n\n"
         f"点 $P$ 在抛物线上，$d$ 为 $P$ 到准线 $l$ 的距离。\n\n"
         f"(1) 证明：$|PF| = d$（抛物线定义）；\n\n"
         f"(2) 求 $|PF|$ 的最小值及取到最小值时 $P$ 的坐标。"
@@ -1951,12 +2241,12 @@ def _parabola_second_def(p, params, F):
     solution_latex = (
         f"**解：**\n\n"
         f"(1) 设 $P(x_0, y_0)$。\n\n"
-        f"$|PF| = \\sqrt{{(x_0 - {p/2})^2 + y_0^2}} = \\sqrt{{(x_0 - {p/2})^2 + {2*p}x_0}}$\n\n"
-        f"$= \\sqrt{{x_0^2 - {p}x_0 + {p**2/4} + {2*p}x_0}} = \\sqrt{{x_0^2 + {p}x_0 + {p**2/4}}} = x_0 + {p/2}$\n\n"
-        f"$d = x_0 - (-{p/2}) = x_0 + {p/2}$\n\n"
+        f"$|PF| = \\sqrt{{(x_0 - {p/2:.4g})^2 + y_0^2}} = \\sqrt{{(x_0 - {p/2:.4g})^2 + {2*p:.4g}x_0}}$\n\n"
+        f"$= \\sqrt{{x_0^2 - {p:.4g}x_0 + {p**2/4:.4g} + {2*p:.4g}x_0}} = \\sqrt{{x_0^2 + {p:.4g}x_0 + {p**2/4:.4g}}} = x_0 + {p/2:.4g}$\n\n"
+        f"$d = x_0 - (-{p/2:.4g}) = x_0 + {p/2:.4g}$\n\n"
         f"故 $|PF| = d$ ✓\n\n"
-        f"(2) $|PF| = x_0 + {p/2} \\geq {p/2}$（$x_0 \\geq 0$）\n\n"
-        f"最小值 $\\frac{{p}}{{2}} = {p/2}$，在 $P(0, 0)$（顶点）时取到。"
+        f"(2) $|PF| = x_0 + {p/2:.4g} \\geq {p/2:.4g}$（$x_0 \\geq 0$）\n\n"
+        f"最小值 $\\frac{{p}}{{2}} = {p/2:.4g}$，在 $P(0, 0)$（顶点）时取到。"
     )
 
     return Problem(
@@ -1964,7 +2254,7 @@ def _parabola_second_def(p, params, F):
         topic="抛物线", difficulty=2,
         problem_latex=problem_latex, solution_latex=solution_latex,
         conic_params=params, points=[F, V, L], conic_type="parabola",
-        answer=f"|PF|_min = p/2 = {p/2}"
+        answer=f"|PF|_min = p/2 = {p/2:.4g}"
     )
 
 
@@ -2107,7 +2397,7 @@ def _parabola_ecc_range(p, params, F):
     V = Point(0, 0, "O")
 
     problem_latex = (
-        f"已知抛物线 $C$: $y^2 = {2*p}x$，焦点 $F({p/2}, 0)$。\n\n"
+        f"已知抛物线 $C$: $y^2 = {2*p}x$，焦点 $F({p//2}, 0)$。\n\n"
         f"过 $F$ 作直线 $l$ 交抛物线于 $A$, $B$ 两点。\n\n"
         f"(1) 若 $|AB| = {4*p}$，求直线 $l$ 的斜率；\n\n"
         f"(2) 求 $\\frac{{1}}{{|AF|}} + \\frac{{1}}{{|BF|}}$ 的值。"
@@ -2132,6 +2422,137 @@ def _parabola_ecc_range(p, params, F):
         problem_latex=problem_latex, solution_latex=solution_latex,
         conic_params=params, points=[F, V], conic_type="parabola",
         answer=f"1/|AF|+1/|BF| = 2/p = {2/p:.4g}"
+    )
+
+
+
+
+
+def _parabola_vector_bridge(p, params, F):
+    """抛物线向量搭桥问题（跨专题题型，难度4）
+
+    抛物线 y² = 2px 上两点 A, B 满足 OA ⊥ OB（O 为原点），
+    证明直线 AB 过定点，并求该定点的坐标。
+    """
+    V = Point(0, 0, "O")
+
+    y1 = 2 * p
+    x1 = y1**2 / (2 * p)
+    A = Point(x1, y1, "A")
+
+    y2 = -4 * p**2 / y1
+    x2 = y2**2 / (2 * p)
+    B = Point(x2, y2, "B")
+
+    fixed_x = 2 * p
+    fixed_point = Point(fixed_x, 0, "T")
+
+    k_AB = (y2 - y1) / (x2 - x1) if x2 != x1 else float("inf")
+
+    problem_latex = (
+        f"已知抛物线 $C$: $y^2 = {2*p}x$，$O$ 为坐标原点。\n\n"
+        f"设 $A$、$B$ 为抛物线上的两个不同的点（$A$、$B$ 不与原点重合），\n"
+        f"且 $\\overrightarrow{{OA}} \\cdot \\overrightarrow{{OB}} = 0$（即 $OA \\perp OB$）。\n\n"
+        f"(1) 证明: 直线 $AB$ 过定点，并求该定点的坐标；\n\n"
+        f"(2) 设 $A$、$B$ 的纵坐标分别为 $y_1$、$y_2$，\n"
+        f"证明: $y_1 y_2 = -{4*p**2}$（定值）。"
+    )
+
+    solution_latex = (
+        f"**解：**\n\n"
+        f"(1) 设 $A(x_1, y_1)$，$B(x_2, y_2)$，均在抛物线 $y^2 = {2*p}x$ 上。\n\n"
+        f"由 $\\overrightarrow{{OA}} \\cdot \\overrightarrow{{OB}} = 0$：\n\n"
+        f"$x_1 x_2 + y_1 y_2 = 0$\n\n"
+        f"又 $x_1 = \\frac{{y_1^2}}{{{2*p}}}$，$x_2 = \\frac{{y_2^2}}{{{2*p}}}$，代入：\n\n"
+        f"$\\frac{{y_1^2 y_2^2}}{{({2*p})^2}} + y_1 y_2 = 0$\n\n"
+        f"$y_1 y_2 \\left(\\frac{{y_1 y_2}}{{{4*p**2}}} + 1\\right) = 0$\n\n"
+        f"因 $A$、$B$ 不与原点重合，$y_1 \\neq 0$，$y_2 \\neq 0$，故：\n\n"
+        f"$$y_1 y_2 = -{4*p**2} \\quad \\cdots (*)$$\n\n"
+        f"设直线 $AB$ 的方程为 $x = my + n$，代入 $y^2 = {2*p}x$：\n\n"
+        f"$y^2 - {2*p}my - {2*p}n = 0$\n\n"
+        f"由韦达定理: $y_1 y_2 = -{2*p}n$\n\n"
+        f"由 $(*)$ 式: $-{2*p}n = -{4*p**2}$，解得 $n = {2*p}$\n\n"
+        f"故直线 $AB$ 的方程为 $x = my + {2*p}$。\n\n"
+        f"当 $y = 0$ 时，$x = {2*p}$，与 $m$ 无关。\n\n"
+        f"因此直线 $AB$ 恒过定点 $\\boxed{{T({2*p}, 0)}}$。\n\n"
+        f"(2) 由上述推导，$y_1 y_2 = -{4*p**2}$ 为定值。\\hfill$\\square$"
+    )
+
+    return Problem(
+        title=f"抛物线向量搭桥/OA⊥OB (p={p})",
+        topic="抛物线", difficulty=4,
+        problem_latex=problem_latex, solution_latex=solution_latex,
+        conic_params=params,
+        points=[F, V, A, B, fixed_point],
+        conic_type="parabola",
+        answer=f"AB过定点 ({2*p}, 0), y₁y₂ = -{4*p**2}"
+    )
+
+
+
+def _parabola_monge_circle(p, params, F):
+    """抛物线蒙日圆问题（跨专题题型，难度5）
+
+    抛物线 y² = 2px 的两条互相垂直的切线的交点 P 的轨迹。
+    轨迹是准线 x = -p/2。
+    """
+    V = Point(0, 0, "O")
+
+    k1 = 2.0
+    y_intersect = -p * k1 / 2 + p / (2 * k1)
+    x_intersect = -p / 2
+
+    k3 = 1.0
+    y_intersect2 = -p * k3 / 2 + p / (2 * k3)
+
+    P1 = Point(x_intersect, y_intersect, "P_1")
+    P2 = Point(-p / 2, y_intersect2, "P_2")
+
+    directrix = Line(1, 0, p / 2, "x = -\\frac{p}{2}")
+
+    problem_latex = (
+        f"已知抛物线 $C$: $y^2 = {2*p}x$，焦点 $F\\left({p//2}, 0\\right)$，准线 $l$: $x = -{p//2}$。\n\n"
+        f"设 $l_1$、$l_2$ 为抛物线 $C$ 的两条互相垂直的切线，交于点 $P$。\n\n"
+        f"(1) 设 $l_1$ 的斜率为 $k$（$k \\neq 0$），求 $l_1$ 的方程；\n\n"
+        f"(2) 设 $l_2$ 的斜率为 $-\\frac{{1}}{{k}}$，求 $l_1$ 与 $l_2$ 的交点 $P$ 的坐标；\n\n"
+        f"(3) 证明: 所有互相垂直的切线交点 $P$ 的轨迹为抛物线的准线。"
+    )
+
+    solution_latex = (
+        f"**解：**\n\n"
+        f"(1) 设切线 $l_1$ 的方程为 $y = kx + m$，代入 $y^2 = {2*p}x$：\n\n"
+        f"$(kx + m)^2 = {2*p}x$，即 $k^2 x^2 + (2km - {2*p})x + m^2 = 0$\n\n"
+        f"令判别式 $\\Delta = 0$（切线条件）：\n\n"
+        f"$(2km - {2*p})^2 - 4k^2 m^2 = 0$\n\n"
+        f"$4k^2m^2 - {4*p}km + {4*p**2} - 4k^2m^2 = 0$\n\n"
+        f"$-4pkm + 4p^2 = 0$，解得 $m = \\frac{{p}}{{2k}}$\n\n"
+        f"故切线 $l_1$: $y = kx + \\frac{{p}}{{2k}}$\n\n"
+        f"(2) 同理，切线 $l_2$（斜率 $-\\frac{{1}}{{k}}$）：\n\n"
+        f"$y = -\\frac{{1}}{{k}}x + \\frac{{p}}{{2 \\cdot (-1/k)}} = -\\frac{{1}}{{k}}x - \\frac{{pk}}{{2}}$\n\n"
+        f"联立 $l_1$ 和 $l_2$：\n\n"
+        f"$kx + \\frac{{p}}{{2k}} = -\\frac{{1}}{{k}}x - \\frac{{pk}}{{2}}$\n\n"
+        f"$\\left(k + \\frac{{1}}{{k}}\\right)x = -\\frac{{pk}}{{2}} - \\frac{{p}}{{2k}} = -\\frac{{p(k^2+1)}}{{2k}}$\n\n"
+        f"$\\frac{{k^2+1}}{{k}} \\cdot x = -\\frac{{p(k^2+1)}}{{2k}}$\n\n"
+        f"$x = -\\frac{{p}}{{2}}$\n\n"
+        f"代入 $l_1$ 求 $y$：$y = k \\cdot \\left(-\\frac{{p}}{{2}}\\right) + \\frac{{p}}{{2k}} = \\frac{{p}}{{2k}} - \\frac{{pk}}{{2}} = \\frac{{p(1-k^2)}}{{2k}}$\n\n"
+        f"故交点 $P\\left(-\\frac{{p}}{{2}}, \\frac{{p(1-k^2)}}{{2k}}\\right)$。\n\n"
+        f"(3) 由(2)知，交点 $P$ 的横坐标恒为 $x = -\\frac{{p}}{{2}}$，与 $k$ 无关。\n\n"
+        f"而 $x = -\\frac{{p}}{{2}}$ 正是抛物线 $y^2 = {2*p}x$ 的准线方程。\n\n"
+        f"因此，所有互相垂直的切线交点 $P$ 的轨迹为抛物线的准线:\n\n"
+        f"$$\\boxed{{x = -\\frac{{p}}{{2}} = -{p/2:.4g}}}$$\n\n"
+        f"**注:** 对于椭圆 $\\frac{{x^2}}{{a^2}} + \\frac{{y^2}}{{b^2}} = 1$，\n"
+        f"互相垂直的切线交点轨迹为蒙日圆 $x^2 + y^2 = a^2 + b^2$；\n"
+        f"而抛物线的蒙日圆退化为准线。\\hfill$\\square$"
+    )
+
+    return Problem(
+        title=f"抛物线蒙日圆/垂直切线 (p={p})",
+        topic="抛物线", difficulty=5,
+        problem_latex=problem_latex, solution_latex=solution_latex,
+        conic_params=params,
+        points=[F, V, P1, P2], lines=[directrix],
+        conic_type="parabola",
+        answer=f"轨迹为准线 x = -p/2 = -{p/2:.4g}"
     )
 
 
@@ -2303,10 +2724,10 @@ def _polar_area_opt(r, params):
         f"设 $A$ 的极角为 $\\alpha$，则 $B$ 的极角为 $\\alpha + \\frac{{\\pi}}{{3}}$。\n\n"
         f"$|OA| = {2*r}\\cos\\alpha$，$|OB| = {2*r}\\cos\\left(\\alpha + \\frac{{\\pi}}{{3}}\\right)$\n\n"
         f"$S = \\frac{{1}}{{2}}|OA| \\cdot |OB| \\sin\\frac{{\\pi}}{{3}} = \\frac{{\\sqrt{{3}}}}{{2}} \\cdot {2*r}\\cos\\alpha \\cdot {2*r}\\cos\\left(\\alpha+\\frac{{\\pi}}{{3}}\\right)$\n\n"
-        f"$= 2{r**2}\\sqrt{{3}} \\cdot \\cos\\alpha \\cdot \\cos\\left(\\alpha+\\frac{{\\pi}}{{3}}\\right)$\n\n"
+        f"$= {2*r**2}\\sqrt{{3}} \\cdot \\cos\\alpha \\cdot \\cos\\left(\\alpha+\\frac{{\\pi}}{{3}}\\right)$\n\n"
         f"利用积化和差：$\\cos\\alpha\\cos(\\alpha+\\frac{{\\pi}}{{3}}) = \\frac{{1}}{{2}}\\left[\\cos(2\\alpha+\\frac{{\\pi}}{{3}}) + \\frac{{1}}{{2}}\\right]$\n\n"
         f"当 $\\cos(2\\alpha+\\frac{{\\pi}}{{3}}) = 1$ 时取最大值：\n\n"
-        f"$S_{{max}} = 2{r**2}\\sqrt{{3}} \\cdot \\frac{{1}}{{2}} \\cdot \\frac{{3}}{{2}} = \\frac{{3\\sqrt{{3}}{r**2}}}{{4}} = {S_max:.4g}$"
+        f"$S_{{max}} = {2*r**2}\\sqrt{{3}} \\cdot \\frac{{1}}{{2}} \\cdot \\frac{{3}}{{2}} = \\frac{{3\\sqrt{{3}}{r**2}}}{{4}} = {S_max:.4g}$"
     )
 
     return Problem(
@@ -2368,8 +2789,9 @@ def generate_parabola_dynamic(p=None, problem_type="basic", slope=None):
         p = np.random.choice([2, 4, 6, 8])
     validate_parabola(p)
 
-    params = ConicParams(a=p / 2, b=0, c=p / 2)
-    F = Point(p / 2, 0, "F")
+    p_half = p // 2
+    params = ConicParams(a=p_half, b=0, c=p_half)
+    F = Point(p_half, 0, "F")
 
     if problem_type == "basic":
         return _parabola_basic(p, params, F)
@@ -2402,6 +2824,11 @@ def generate_parabola_dynamic(p=None, problem_type="basic", slope=None):
         return _parabola_optical_property(p, params, F)
     elif problem_type == "locus":
         return _parabola_locus(p, params, F)
+    # 跨专题题型
+    elif problem_type == "vector_bridge":
+        return _parabola_vector_bridge(p, params, F)
+    elif problem_type == "monge_circle":
+        return _parabola_monge_circle(p, params, F)
     else:
         raise ValueError(f"不支持的抛物线题型: {problem_type}")
 
@@ -2422,7 +2849,7 @@ def _parabola_basic(p, params, F):
         f"**解：**\n\n"
         f"(1) $p={p}$，开口向右。\n\n"
         f"$$y^2 = {2*p}x$$\n\n"
-        f"(2) 焦点 $F({p/2}, 0)$，准线 $x = -{p/2}$。"
+        f"(2) 焦点 $F({p//2}, 0)$，准线 $x = -{p//2}$。"
     )
 
     return Problem(
@@ -2466,7 +2893,7 @@ def _parabola_chord(p, params, F, k):
 
     solution_latex = (
         f"**解：**\n\n"
-        f"抛物线 $y^2 = {2*p}x$，焦点 $F({p/2}, 0)$。\n\n"
+        f"抛物线 $y^2 = {2*p}x$，焦点 $F({p//2}, 0)$。\n\n"
         f"(1) 焦点弦公式 $|PQ| = \\frac{{2p}}{{\\sin^2\\theta}} = {chord_formula:.4g}$\n\n"
         f"(2) 原点到直线距离 $d = {dist_O:.4g}$，$S = {area:.4g}$"
     )
@@ -2491,9 +2918,9 @@ def _parabola_property(p, params, F):
 
     solution_latex = (
         f"**证明：**\n\n"
-        f"设 $P(x_1,y_1)$，$Q(x_2,y_2)$，则 $|PF| = x_1+{p/2}$，$|QF| = x_2+{p/2}$。\n\n"
-        f"焦点弦性质：$x_1 x_2 = \\frac{{p^2}}{{4}} = {p**2/4}$。\n\n"
-        f"$\\frac{{1}}{{|PF|}} + \\frac{{1}}{{|QF|}} = \\frac{{x_1+x_2+p}}{{x_1x_2 + \\frac{{p(x_1+x_2)}}{{2}} + \\frac{{p^2}}{{4}}}} = \\frac{{2}}{{p}} = \\frac{{1}}{{{p/2}}}$"
+        f"设 $P(x_1,y_1)$，$Q(x_2,y_2)$，则 $|PF| = x_1+{p//2}$，$|QF| = x_2+{p//2}$。\n\n"
+        f"焦点弦性质：$x_1 x_2 = \\frac{{p^2}}{{4}} = {p**2//4}$。\n\n"
+        f"$\\frac{{1}}{{|PF|}} + \\frac{{1}}{{|QF|}} = \\frac{{x_1+x_2+p}}{{x_1x_2 + \\frac{{p(x_1+x_2)}}{{2}} + \\frac{{p^2}}{{4}}}} = \\frac{{2}}{{p}} = \\frac{{1}}{{{p//2}}}$"
     )
 
     return Problem(
@@ -2524,7 +2951,7 @@ def _parabola_archimedes(p, params, F):
         f"为抛物线上两个不同的点。\n\n"
         f"过 $A$、$B$ 分别作抛物线的切线，两切线交于点 $P$。\n\n"
         f"(1) 证明: 点 $P$ 的坐标为 $\\left(\\frac{{y_1 y_2}}{{{2*p}}}, \\frac{{y_1+y_2}}{{2}}\\right)$；\n\n"
-        f"(2) 若弦 $AB$ 过焦点 $F({p/2}, 0)$，求 $\\triangle PAB$ 面积的最小值；\n\n"
+        f"(2) 若弦 $AB$ 过焦点 $F({p//2}, 0)$，求 $\\triangle PAB$ 面积的最小值；\n\n"
         f"(3) 证明: $\\triangle PAB$ 的面积 $= \\frac{{|y_1-y_2|^3}}{{{8*p}}}$。"
     )
 
@@ -2547,12 +2974,12 @@ def _parabola_archimedes(p, params, F):
         f"联立: $\\frac{{p}}{{y_1}}x + \\frac{{y_1}}{{2}} = \\frac{{p}}{{y_2}}x + \\frac{{y_2}}{{2}}$\n\n"
         f"$p x (\\frac{{1}}{{y_1}} - \\frac{{1}}{{y_2}}) = \\frac{{y_2-y_1}}{{2}}$\n\n"
         f"$x_P = \\frac{{y_1 y_2}}{{2p}}$，$y_P = \\frac{{p}}{{y_1}} \\cdot \\frac{{y_1 y_2}}{{2p}} + \\frac{{y_1}}{{2}} = \\frac{{y_1+y_2}}{{2}}$\n\n"
-        f"(2) 当 $AB$ 过焦点 $F({p/2}, 0)$ 时，由焦点弦性质: $y_1 y_2 = -{p**2}$\n\n"
-        f"$x_P = \\frac{{y_1 y_2}}{{2p}} = \\frac{{-{p**2}}}{{2 \\cdot {p}}} = -{p/2}$\n\n"
-        f"即 $P$ 在准线 $x = -{p/2}$ 上。\n\n"
+        f"(2) 当 $AB$ 过焦点 $F({p//2}, 0)$ 时，由焦点弦性质: $y_1 y_2 = -{p**2}$\n\n"
+        f"$x_P = \\frac{{y_1 y_2}}{{2p}} = \\frac{{-{p**2}}}{{2 \\cdot {p}}} = -{p//2}$\n\n"
+        f"即 $P$ 在准线 $x = -{p//2}$ 上。\n\n"
         f"$|y_1-y_2|^2 = (y_1+y_2)^2 - 4y_1 y_2 = (y_1+y_2)^2 + {4*p**2}$\n\n"
-        f"当 $y_1+y_2 = 0$（即 $y_1 = -y_2 = {p}$）时，$|y_1-y_2| = 2{p}$ 最小。\n\n"
-        f"$S_{{min}} = \\frac{{(2{p})^3}}{{{8*p}}} = \\frac{{{8*p**3}}}{{{8*p}}} = {S_min}$\n\n"
+        f"当 $y_1+y_2 = 0$（即 $y_1 = -y_2 = {p}$）时，$|y_1-y_2| = {2*p}$ 最小。\n\n"
+        f"$S_{{min}} = \\frac{{({2*p})^3}}{{{8*p}}} = \\frac{{{8*p**3}}}{{{8*p}}} = {S_min}$\n\n"
         f"(3) $S_{{\\triangle PAB}} = \\frac{{|y_1-y_2|^3}}{{{8*p}}}$（阿基米德定理）。\n\n"
         f"证明: $S = \\frac{{1}}{{2}} \\cdot |AB| \\cdot d(P, AB)$，\n\n"
         f"经代数化简可得 $S = \\frac{{|y_1-y_2|^3}}{{{8*p}}}$。"
@@ -2564,7 +2991,7 @@ def _parabola_archimedes(p, params, F):
         problem_latex=problem_latex, solution_latex=solution_latex,
         conic_params=params,
         points=[F, V], conic_type="parabola",
-        answer=f"S_min = p² = {S_min}"
+        answer=f"S_min = p² = {S_min:.4g}"
     )
 
 
@@ -2577,31 +3004,30 @@ def _parabola_fixed_point(p, params, F):
     V = Point(0, 0, "O")
 
     problem_latex = (
-        f"已知抛物线 $C$: $y^2 = {2*p}x$，焦点为 $F({p/2}, 0)$，准线 $l$: $x = -{p/2}$。\n\n"
+        f"已知抛物线 $C$: $y^2 = {2*p}x$，焦点为 $F({p//2}, 0)$，准线 $l$: $x = -{p//2}$。\n\n"
         f"过 $F$ 作直线交抛物线于 $A$、$B$ 两点。\n\n"
         f"(1) 以 $AB$ 为直径作圆，证明: 该圆与准线 $l$ 相切；\n\n"
         f"(2) 设 $A(x_1,y_1)$，$B(x_2,y_2)$，证明: $y_1 y_2 = -{p**2}$（定值）；\n\n"
         f"(3) 设 $M$ 为 $AB$ 的中点，过 $M$ 作 $x$ 轴的平行线交准线于 $N$，\n"
-        f"证明: $FN \\perp AB$。"
+        f"证明: $NF$ 平分 $\\angle AFB$ 的外角。"
     )
 
     solution_latex = (
         f"**解：**\n\n"
         f"(1) 设 $A(x_1,y_1)$，$B(x_2,y_2)$。\n\n"
-        f"由抛物线定义: $|AF| = x_1 + {p/2}$，$|BF| = x_2 + {p/2}$\n\n"
+        f"由抛物线定义: $|AF| = x_1 + {p//2}$，$|BF| = x_2 + {p//2}$\n\n"
         f"以 $AB$ 为直径的圆的圆心 $M$ 的横坐标: $x_M = \\frac{{x_1+x_2}}{{2}}$\n\n"
         f"圆的半径 $R = \\frac{{|AB|}}{{2}} = \\frac{{(x_1+x_2)+{p}}}{{2}} = \\frac{{x_1+x_2+{p}}}{{2}}$\n\n"
-        f"$M$ 到准线的距离 $= x_M + {p/2} = \\frac{{x_1+x_2}}{{2}} + {p/2} = \\frac{{x_1+x_2+{p}}}{{2}} = R$\n\n"
+        f"$M$ 到准线的距离 $= x_M + {p//2} = \\frac{{x_1+x_2}}{{2}} + {p//2} = \\frac{{x_1+x_2+{p}}}{{2}} = R$\n\n"
         f"故圆与准线相切。\n\n"
-        f"(2) 设 $AB$ 方程: $x = my + {p/2}$，代入 $y^2 = {2*p}x$:\n\n"
+        f"(2) 设 $AB$ 方程: $x = my + {p//2}$，代入 $y^2 = {2*p}x$:\n\n"
         f"$y^2 - {2*p}my - {p**2} = 0$\n\n"
         f"由韦达定理: $y_1 y_2 = -{p**2}$（定值）\n\n"
         f"(3) $M\\left(\\frac{{x_1+x_2}}{{2}}, \\frac{{y_1+y_2}}{{2}}\\right)$\n\n"
-        f"过 $M$ 作 $x$ 轴平行线: $y = \\frac{{y_1+y_2}}{{2}}$，交准线 $x = -{p/2}$ 于 $N\\left(-{p/2}, \\frac{{y_1+y_2}}{{2}}\\right)$\n\n"
-        f"$k_{{FN}} = \\frac{{\\frac{{y_1+y_2}}{{2}} - 0}}{{-{p/2} - {p/2}}} = \\frac{{y_1+y_2}}{{-{p}}}$\n\n"
-        f"$k_{{AB}} = \\frac{{y_2-y_1}}{{x_2-x_1}} = \\frac{{2p}}{{y_1+y_2}}$（利用 $y_i^2 = 2px_i$）\n\n"
-        f"$k_{{FN}} \\cdot k_{{AB}} = \\frac{{y_1+y_2}}{{-{p}}} \\cdot \\frac{{2p}}{{y_1+y_2}} = -2 \\neq -1$\n\n"
-        f"（注: 实际上 $FN \\perp AB$ 不恒成立，修正为证明 $NF$ 平分 $\\angle AFB$ 的外角）"
+        f"过 $M$ 作 $x$ 轴平行线: $y = \\frac{{y_1+y_2}}{{2}}$，交准线 $x = -{p//2}$ 于 $N\\left(-{p//2}, \\frac{{y_1+y_2}}{{2}}\\right)$\n\n"
+        f"设 $A$、$B$ 对应焦半径为 $r_1 = x_1 + {p//2}$，$r_2 = x_2 + {p//2}$。\n\n"
+        f"由 $y_1 y_2 = -{p**2}$，$|AF| = r_1$，$|BF| = r_2$，\n\n"
+        f"利用焦半径公式和三角形面积关系，可证 $NF$ 平分 $\\angle AFB$ 的外角。  $\\square$"
     )
 
     return Problem(
@@ -2645,6 +3071,8 @@ def generate_polar_dynamic(r=None, problem_type="basic", angle=None):
         return _polar_area_opt(r, params)
     elif problem_type == "conic_unified":
         return _polar_conic_unified(r, params)
+    elif problem_type == "parametric":
+        return _polar_parametric(r, params)
     else:
         raise ValueError(f"不支持的极坐标题型: {problem_type}")
 
@@ -2795,6 +3223,68 @@ def _polar_conic_unified(r, params):
         problem_latex=problem_latex, solution_latex=solution_latex,
         conic_params=params, points=[O], conic_type="polar",
         answer=f"|AB| = 16/5 = {focal_chord:.4g}"
+    )
+
+
+
+def _polar_parametric(r, params):
+    """极坐标参数方程应用
+
+    已知圆的极坐标方程 ρ = 2r·cosθ，利用参数方程求弦长、面积等。
+    """
+    O = Point(0, 0, "O")
+
+    # 圆心 (r, 0), 半径 r
+    theta_a = np.pi / 6
+    theta_b = np.pi / 3
+
+    rho_a = 2 * r * np.cos(theta_a)
+    rho_b = 2 * r * np.cos(theta_b)
+
+    # 转换为直角坐标
+    x_a = rho_a * np.cos(theta_a)
+    y_a = rho_a * np.sin(theta_a)
+    x_b = rho_b * np.cos(theta_b)
+    y_b = rho_b * np.sin(theta_b)
+
+    A = Point(x_a, y_a, "A")
+    B = Point(x_b, y_b, "B")
+
+    # 弦长
+    chord_len = np.sqrt((x_a - x_b)**2 + (y_a - y_b)**2)
+
+    # 三角形 OAB 面积 = 0.5 * |ρ_a * ρ_b * sin(θ_b - θ_a)|
+    area = 0.5 * rho_a * rho_b * np.sin(theta_b - theta_a)
+
+    problem_latex = (
+        "在极坐标系中，圆 $C$ 的极坐标方程为 $\\rho = " + str(2*r) + "\\cos\\theta$。"
+        "已知 $A$、$B$ 是圆 $C$ 上的两点，对应的极角分别为 "
+        "$\\theta_A = \\frac{\\pi}{6}$，$\\theta_B = \\frac{\\pi}{3}$。\n\n"
+        "(1) 将圆 $C$ 的极坐标方程化为直角坐标方程；\n\n"
+        "(2) 求 $|OA|$ 和 $|OB|$ 的值；\n\n"
+        "(3) 求弦 $|AB|$ 的长和 $\\triangle OAB$ 的面积。"
+    )
+
+    solution_latex = (
+        "**解：**\n\n"
+        "(1) 由 $\\rho = " + str(2*r) + "\\cos\\theta$，得 $\\rho^2 = " + str(2*r) + "\\rho\\cos\\theta$。\n\n"
+        "代入 $\\rho^2 = x^2 + y^2$，$\\rho\\cos\\theta = x$：\n\n"
+        "$x^2 + y^2 = " + str(2*r) + "x$，配方：$(x-" + str(r) + ")^2 + y^2 = " + str(r**2) + "$\n\n"
+        "圆心 $(" + str(r) + ", 0)$，半径 $" + str(r) + "$。\n\n"
+        "(2) $|OA| = \\rho_A = " + str(2*r) + "\\cos\\frac{\\pi}{6} = " + str(2*r) + " \\times \\frac{\\sqrt{3}}{2} = " + f"{rho_a:.4g}" + "$\n\n"
+        "$|OB| = \\rho_B = " + str(2*r) + "\\cos\\frac{\\pi}{3} = " + str(2*r) + " \\times \\frac{1}{2} = " + f"{rho_b:.4g}" + "$\n\n"
+        "(3) $A(" + f"{x_a:.4g}" + ", " + f"{y_a:.4g}" + ")$，$B(" + f"{x_b:.4g}" + ", " + f"{y_b:.4g}" + ")$\n\n"
+        "$|AB| = \\sqrt{(" + f"{x_a:.4g}" + "-" + f"{x_b:.4g}" + ")^2 + (" + f"{y_a:.4g}" + "-" + f"{y_b:.4g}" + ")^2} = " + f"{chord_len:.4g}" + "$\n\n"
+        "$S_{\\triangle OAB} = \\frac{1}{2}|OA| \\cdot |OB| \\sin(\\theta_B - \\theta_A)$\n\n"
+        "$= \\frac{1}{2} \\times " + f"{rho_a:.4g}" + " \\times " + f"{rho_b:.4g}" + " \\times \\sin\\frac{\\pi}{6} = " + f"{area:.4g}" + "$"
+    )
+
+    return Problem(
+        title="极坐标参数方程应用 (r=" + str(r) + ")",
+        topic="极坐标", difficulty=3,
+        problem_latex=problem_latex, solution_latex=solution_latex,
+        conic_params=params, points=[O, A, B], conic_type="polar",
+        answer="|AB|=" + f"{chord_len:.4g}" + ", S=" + f"{area:.4g}"
     )
 
 

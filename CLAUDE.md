@@ -24,7 +24,7 @@ python3 run.py --interactive
 # Batch generation (all topics × all difficulties, generates PPT)
 python3 main.py
 
-# Run all 53 problem types test
+# Run all 60 problem types test
 python3 test_all_types.py
 
 # Build standalone executable
@@ -41,7 +41,7 @@ The system has two parallel generation paths that share the same data model:
 - Used by `main.py` for batch generation
 
 **Path 2 — Dynamic generation** (`interactive_generator.py`):
-- `generate_*_dynamic(problem_type=..., a=..., b=..., ...)` supports ~53 problem types with user-specified parameters
+- `generate_*_dynamic(problem_type=..., a=..., b=..., ...)` supports ~60 problem types with user-specified parameters
 - Entry functions: `generate_ellipse_dynamic()`, `generate_hyperbola_dynamic()`, `generate_parabola_dynamic()`, `generate_polar_dynamic()`
 - Used by TUI and CLI modes
 
@@ -65,10 +65,10 @@ Each conic section supports basic → intermediate → competition difficulty le
 
 | Topic | Types |
 |-------|-------|
-| Ellipse | basic, chord, focus_triangle, midpoint_chord, focal_radius, slope_product, tangent_line, second_def, fixed_point, area_opt, ecc_range, tangent, third_def, optical_property, locus |
-| Hyperbola | basic, chord, focus_triangle, midpoint_chord, focal_radius, second_def, tangent_line, slope_product, asymptote_angle, area_opt, ecc_range, tangent, optical_property, locus, equilateral_hyperbola |
-| Parabola | basic, chord, midpoint_chord, focal_radius, tangent_line, second_def, slope_product, property, archimedes, fixed_point, ecc_range, optical_property, locus |
-| Polar | basic, line_circle, focal_radius, chord_ratio, slope_product, fixed_point, conic, second_def, area_opt, conic_unified |
+| Ellipse | basic, chord, focus_triangle, midpoint_chord, focal_radius, slope_product, tangent_line, second_def, fixed_point, area_opt, ecc_range, tangent, third_def, optical_property, locus, monge_circle, apollonius |
+| Hyperbola | basic, chord, focus_triangle, midpoint_chord, focal_radius, second_def, tangent_line, slope_product, asymptote_angle, area_opt, ecc_range, tangent, optical_property, locus, equilateral_hyperbola, monge_circle, butterfly |
+| Parabola | basic, chord, midpoint_chord, focal_radius, tangent_line, second_def, slope_product, property, archimedes, fixed_point, ecc_range, optical_property, locus, vector_bridge, monge_circle |
+| Polar | basic, line_circle, focal_radius, chord_ratio, slope_product, fixed_point, conic, second_def, area_opt, conic_unified, parametric |
 
 ## Adding New Problem Types — Checklist
 

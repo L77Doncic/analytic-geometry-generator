@@ -152,6 +152,11 @@ def parse_user_input(text: str) -> dict:
         "轨迹": "locus", "locus": "locus",
         "等轴": "equilateral_hyperbola", "equilateral_hyperbola": "equilateral_hyperbola",
         "统一方程": "conic_unified", "conic_unified": "conic_unified",
+        "蒙日": "monge_circle", "monge_circle": "monge_circle",
+        "阿波罗尼斯": "apollonius", "apollonius": "apollonius",
+        "蝴蝶": "butterfly", "butterfly": "butterfly",
+        "向量搭桥": "vector_bridge", "vector_bridge": "vector_bridge",
+        "参数方程": "parametric", "parametric": "parametric",
     }
     for keyword, ptype in type_map.items():
         if keyword in text:
@@ -182,9 +187,9 @@ def parse_user_input(text: str) -> dict:
         # 自动从高难度题型中随机选择
         import random as _rand
         hard_types = {
-            "ellipse": ["fixed_point", "area_opt", "ecc_range", "tangent", "third_def", "optical_property"],
-            "hyperbola": ["asymptote_angle", "area_opt", "focus_triangle", "optical_property"],
-            "parabola": ["archimedes", "fixed_point", "property", "optical_property"],
+            "ellipse": ["fixed_point", "area_opt", "ecc_range", "tangent", "third_def", "optical_property", "monge_circle", "apollonius"],
+            "hyperbola": ["asymptote_angle", "area_opt", "focus_triangle", "optical_property", "monge_circle", "butterfly"],
+            "parabola": ["archimedes", "fixed_point", "property", "optical_property", "monge_circle", "vector_bridge"],
             "polar": ["conic"],
         }
         if result["topic"] in hard_types:
@@ -196,7 +201,7 @@ def parse_user_input(text: str) -> dict:
             "ellipse": ["chord", "focus_triangle", "midpoint_chord", "focal_radius", "slope_product", "tangent_line", "second_def", "locus"],
             "hyperbola": ["chord", "focus_triangle", "midpoint_chord", "focal_radius", "second_def", "tangent_line", "slope_product", "locus", "equilateral_hyperbola"],
             "parabola": ["chord", "midpoint_chord", "focal_radius", "tangent_line", "second_def", "slope_product", "locus"],
-            "polar": ["line_circle", "focal_radius", "chord_ratio", "slope_product", "fixed_point", "conic_unified"],
+            "polar": ["line_circle", "focal_radius", "chord_ratio", "slope_product", "fixed_point", "conic_unified", "parametric"],
         }
         if result["topic"] in mid_types:
             result["problem_type"] = _rand2.choice(mid_types[result["topic"]])
@@ -417,6 +422,11 @@ class GeometryTUI(App):
                 yield Static("  locus — 轨迹方程", classes="help-item")
                 yield Static("  equilateral_hyperbola — 等轴双曲线", classes="help-item")
                 yield Static("  conic_unified — 统一极坐标方程", classes="help-item")
+                yield Static("  monge_circle — 蒙日圆", classes="help-item")
+                yield Static("  apollonius — 阿波罗尼斯圆", classes="help-item")
+                yield Static("  butterfly — 蝴蝶问题", classes="help-item")
+                yield Static("  vector_bridge — 向量搭桥", classes="help-item")
+                yield Static("  parametric — 参数方程应用", classes="help-item")
                 yield Divider()
                 yield Static("快捷键", classes="muted")
                 yield Static("  Ctrl+Q 退出", classes="help-item")
@@ -667,6 +677,11 @@ class GeometryTUI(App):
       locus             轨迹方程（椭圆/双曲线/抛物线）
       equilateral_hyperbola 等轴双曲线（双曲线）
       conic_unified     统一极坐标方程（极坐标）
+      monge_circle      蒙日圆（椭圆/双曲线/抛物线）
+      apollonius        阿波罗尼斯圆（椭圆）
+      butterfly         蝴蝶问题（双曲线）
+      vector_bridge     向量搭桥（抛物线）
+      parametric        参数方程应用（极坐标）
 
   ── 难度快捷方式 ──
     基础 / basic      → 基础题
