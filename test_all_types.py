@@ -1,5 +1,5 @@
 """
-全面测试所有 45 种题型的生成能力
+全面测试所有 53 种题型的生成能力
 测试项：题目生成、LaTeX渲染、配图渲染、答案完整性
 """
 
@@ -29,6 +29,7 @@ ALL_TYPES = {
             "basic", "chord", "focus_triangle",
             "midpoint_chord", "focal_radius", "slope_product", "tangent_line", "second_def",
             "fixed_point", "area_opt", "ecc_range", "tangent", "third_def",
+            "optical_property", "locus",
         ]
     },
     "双曲线": {
@@ -38,6 +39,7 @@ ALL_TYPES = {
             "basic", "chord", "focus_triangle",
             "midpoint_chord", "focal_radius", "second_def", "tangent_line", "slope_product",
             "asymptote_angle", "area_opt", "ecc_range", "tangent",
+            "optical_property", "locus", "equilateral_hyperbola",
         ]
     },
     "抛物线": {
@@ -47,6 +49,7 @@ ALL_TYPES = {
             "basic", "chord",
             "midpoint_chord", "focal_radius", "tangent_line", "second_def", "slope_product",
             "property", "archimedes", "fixed_point", "ecc_range",
+            "optical_property", "locus",
         ]
     },
     "极坐标": {
@@ -56,6 +59,7 @@ ALL_TYPES = {
             "basic", "line_circle",
             "focal_radius", "chord_ratio", "slope_product", "fixed_point",
             "conic", "second_def", "area_opt",
+            "conic_unified",
         ]
     },
 }

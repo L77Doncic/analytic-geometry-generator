@@ -147,6 +147,11 @@ def parse_user_input(text: str) -> dict:
         "阿基米德": "archimedes", "archimedes": "archimedes",
         "渐近线": "asymptote_angle", "asymptote_angle": "asymptote_angle",
         "垂直弦": "slope_product", "互相垂直": "slope_product",
+        # 新增题型
+        "光学": "optical_property", "反射": "optical_property", "optical_property": "optical_property",
+        "轨迹": "locus", "locus": "locus",
+        "等轴": "equilateral_hyperbola", "equilateral_hyperbola": "equilateral_hyperbola",
+        "统一方程": "conic_unified", "conic_unified": "conic_unified",
     }
     for keyword, ptype in type_map.items():
         if keyword in text:
@@ -177,9 +182,9 @@ def parse_user_input(text: str) -> dict:
         # 自动从高难度题型中随机选择
         import random as _rand
         hard_types = {
-            "ellipse": ["fixed_point", "area_opt", "ecc_range", "tangent", "third_def"],
-            "hyperbola": ["asymptote_angle", "area_opt", "focus_triangle"],
-            "parabola": ["archimedes", "fixed_point", "property"],
+            "ellipse": ["fixed_point", "area_opt", "ecc_range", "tangent", "third_def", "optical_property"],
+            "hyperbola": ["asymptote_angle", "area_opt", "focus_triangle", "optical_property"],
+            "parabola": ["archimedes", "fixed_point", "property", "optical_property"],
             "polar": ["conic"],
         }
         if result["topic"] in hard_types:
@@ -188,10 +193,10 @@ def parse_user_input(text: str) -> dict:
         # 自动从进阶题型中随机选择
         import random as _rand2
         mid_types = {
-            "ellipse": ["chord", "focus_triangle", "midpoint_chord", "focal_radius", "slope_product", "tangent_line", "second_def"],
-            "hyperbola": ["chord", "focus_triangle", "midpoint_chord", "focal_radius", "second_def", "tangent_line", "slope_product"],
-            "parabola": ["chord", "midpoint_chord", "focal_radius", "tangent_line", "second_def", "slope_product"],
-            "polar": ["line_circle", "focal_radius", "chord_ratio", "slope_product", "fixed_point"],
+            "ellipse": ["chord", "focus_triangle", "midpoint_chord", "focal_radius", "slope_product", "tangent_line", "second_def", "locus"],
+            "hyperbola": ["chord", "focus_triangle", "midpoint_chord", "focal_radius", "second_def", "tangent_line", "slope_product", "locus", "equilateral_hyperbola"],
+            "parabola": ["chord", "midpoint_chord", "focal_radius", "tangent_line", "second_def", "slope_product", "locus"],
+            "polar": ["line_circle", "focal_radius", "chord_ratio", "slope_product", "fixed_point", "conic_unified"],
         }
         if result["topic"] in mid_types:
             result["problem_type"] = _rand2.choice(mid_types[result["topic"]])
@@ -408,6 +413,10 @@ class GeometryTUI(App):
                 yield Static("  third_def — 第三定义", classes="help-item")
                 yield Static("  archimedes — 阿基米德三角形", classes="help-item")
                 yield Static("  asymptote_angle — 渐近线", classes="help-item")
+                yield Static("  optical_property — 光学性质", classes="help-item")
+                yield Static("  locus — 轨迹方程", classes="help-item")
+                yield Static("  equilateral_hyperbola — 等轴双曲线", classes="help-item")
+                yield Static("  conic_unified — 统一极坐标方程", classes="help-item")
                 yield Divider()
                 yield Static("快捷键", classes="muted")
                 yield Static("  Ctrl+Q 退出", classes="help-item")
@@ -654,6 +663,10 @@ class GeometryTUI(App):
       third_def       第三定义（椭圆）
       archimedes      阿基米德三角形（抛物线）
       asymptote_angle 渐近线（双曲线）
+      optical_property  光学性质（椭圆/双曲线/抛物线）
+      locus             轨迹方程（椭圆/双曲线/抛物线）
+      equilateral_hyperbola 等轴双曲线（双曲线）
+      conic_unified     统一极坐标方程（极坐标）
 
   ── 难度快捷方式 ──
     基础 / basic      → 基础题

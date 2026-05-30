@@ -122,6 +122,10 @@ def generate_ellipse_dynamic(a=None, b=None, problem_type="basic", slope=None):
         return _ellipse_tangent(a, b, c, e, params)
     elif problem_type == "third_def":
         return _ellipse_third_def(a, b, c, e, params)
+    elif problem_type == "optical_property":
+        return _ellipse_optical_property(a, b, c, e, params)
+    elif problem_type == "locus":
+        return _ellipse_locus(a, b, c, e, params)
     else:
         raise ValueError(f"不支持的椭圆题型: {problem_type}")
 
@@ -878,6 +882,157 @@ def _ellipse_third_def(a, b, c, e, params):
     )
 
 
+
+def _ellipse_optical_property(a, b, c, e, params):
+    """椭圆光学性质（反射定律）
+
+    从焦点 F₁ 出发的光线经椭圆反射后经过焦点 F₂。
+    设 P 为椭圆上一点，证明：过 P 的切线与 PF₁、PF₂ 的夹角相等（反射定律）。
+    """
+    F1 = Point(-c, 0, "F_1")
+    F2 = Point(c, 0, "F_2")
+
+    # 取 P(a*cos(60°), b*sin(60°)) 作为示例点
+    theta = np.pi / 3
+    x0 = a * np.cos(theta)
+    y0 = b * np.sin(theta)
+    P = Point(x0, y0, "P")
+
+    # 切线斜率和 PF1、PF2 斜率
+    k_tan = -b**2 * x0 / (a**2 * y0)
+    k_pf1 = y0 / (x0 + c)
+    k_pf2 = y0 / (x0 - c)
+
+    tan_alpha = abs((k_tan - k_pf1) / (1 + k_tan * k_pf1))
+    tan_beta = abs((k_tan - k_pf2) / (1 + k_tan * k_pf2))
+
+    # 焦半径
+    PF1 = a + e * x0
+    PF2 = a - e * x0
+
+    problem_latex = (
+        f"已知椭圆 $C$: $\\frac{{x^2}}{{{a**2}}} + \\frac{{y^2}}{{{b**2}}} = 1$ "
+        f"($a > b > 0$)，左、右焦点分别为 $F_1(-{c:.4g}, 0)$、$F_2({c:.4g}, 0)$。\n\n"
+        f"点 $P\\left({x0:.4g}, {y0:.4g}\\right)$ 在椭圆上。\n\n"
+        f"(1) 求过点 $P$ 的切线方程；\n\n"
+        f"(2) 设过 $P$ 的切线与直线 $PF_1$ 的夹角为 $\\alpha$，"
+        f"与直线 $PF_2$ 的夹角为 $\\beta$，证明：$\\alpha = \\beta$（椭圆的光学性质/反射定律）。"
+    )
+
+    solution_latex = (
+        f"**解：**\n\n"
+        f"(1) 椭圆在点 $P\\left({x0:.4g}, {y0:.4g}\\right)$ 处的切线方程为：\n\n"
+        f"$\\frac{{x_0 x}}{{{a**2}}} + \\frac{{y_0 y}}{{{b**2}}} = 1$\n\n"
+        f"代入 $x_0 = {x0:.4g}$，$y_0 = {y0:.4g}$：\n\n"
+        f"$\\frac{{{x0:.4g} \\cdot x}}{{{a**2}}} + \\frac{{{y0:.4g} \\cdot y}}{{{b**2}}} = 1$\n\n"
+        f"(2) **利用焦半径公式：**\n\n"
+        f"$|PF_1| = a + ex_0 = {a} + {e:.4g} \\cdot {x0:.4g} = {PF1:.4g}$\n\n"
+        f"$|PF_2| = a - ex_0 = {a} - {e:.4g} \\cdot {x0:.4g} = {PF2:.4g}$\n\n"
+        f"**切线的斜率：**$k_l = -\\frac{{b^2 x_0}}{{a^2 y_0}} = -\\frac{{{b**2} \\cdot {x0:.4g}}}{{{a**2} \\cdot {y0:.4g}}} = {k_tan:.4g}$\n\n"
+        f"**直线 $PF_1$ 的斜率：**$k_1 = \\frac{{y_0}}{{x_0 + c}} = \\frac{{{y0:.4g}}}{{x_0 + {c:.4g}}} = {k_pf1:.4g}$\n\n"
+        f"**直线 $PF_2$ 的斜率：**$k_2 = \\frac{{y_0}}{{x_0 - c}} = \\frac{{{y0:.4g}}}{{x_0 - {c:.4g}}} = {k_pf2:.4g}$\n\n"
+        f"设切线与 $PF_1$ 的夹角为 $\\alpha$，与 $PF_2$ 的夹角为 $\\beta$。\n\n"
+        f"$\\tan\\alpha = \\left|\\frac{{k_l - k_1}}{{1 + k_l k_1}}\\right| = {tan_alpha:.4g}$\n\n"
+        f"$\\tan\\beta = \\left|\\frac{{k_l - k_2}}{{1 + k_l k_2}}\\right| = {tan_beta:.4g}$\n\n"
+        f"由于 $\\tan\\alpha = \\tan\\beta$，故 $\\alpha = \\beta$。\n\n"
+        f"**一般性证明：**设 $P(x_0, y_0)$ 为椭圆上任意一点，则\n\n"
+        f"$\\tan\\alpha = \\left|\\frac{{k_l - k_1}}{{1 + k_l k_1}}\\right|$，"
+        f"$\\tan\\beta = \\left|\\frac{{k_l - k_2}}{{1 + k_l k_2}}\\right|$\n\n"
+        f"其中 $k_l = -\\frac{{b^2 x_0}}{{a^2 y_0}}$，$k_1 = \\frac{{y_0}}{{x_0 + c}}$，"
+        f"$k_2 = \\frac{{y_0}}{{x_0 - c}}$。\n\n"
+        f"经代数化简（利用 $b^2 x_0^2 + a^2 y_0^2 = a^2 b^2$ 和 $c^2 = a^2 - b^2$）：\n\n"
+        f"$\\tan\\alpha = \\tan\\beta = \\frac{{b^2}}{{c \\cdot |y_0|}}$\n\n"
+        f"故 $\\alpha = \\beta$。证毕。\\hfill$\\square$"
+    )
+
+    return Problem(
+        title=f"椭圆光学性质/反射定律 (a={a}, b={b})",
+        topic="椭圆", difficulty=4,
+        problem_latex=problem_latex, solution_latex=solution_latex,
+        conic_params=params,
+        points=[F1, F2, P],
+        conic_type="ellipse",
+        answer=f"\\alpha = \\beta（反射定律）"
+    )
+
+
+def _ellipse_locus(a, b, c, e, params):
+    """椭圆轨迹方程问题
+
+    已知椭圆 x²/a² + y²/b² = 1，F₁, F₂ 为左、右焦点，P 为椭圆上一点。
+    设三角形 F₁PF₂ 的重心为 G，求 G 的轨迹方程。
+    """
+    F1 = Point(-c, 0, "F_1")
+    F2 = Point(c, 0, "F_2")
+
+    # 取一个示例点 P
+    theta = np.pi / 3
+    x_P = a * np.cos(theta)
+    y_P = b * np.sin(theta)
+    P = Point(x_P, y_P, "P")
+
+    # 重心 G = ((x₀ + (-c) + c)/3, (y₀ + 0 + 0)/3) = (x₀/3, y₀/3)
+    x_G = (x_P + (-c) + c) / 3
+    y_G = (y_P + 0 + 0) / 3
+    G = Point(x_G, y_G, "G")
+
+    # 轨迹椭圆参数
+    a_G = a / 3
+    b_G = b / 3
+    e_G = e  # 离心率不变
+
+    # |OG| 的范围
+    OG_min = b / 3
+    OG_max = a / 3
+
+    problem_latex = (
+        f"已知椭圆 $C$: $\\frac{{x^2}}{{{a**2}}} + \\frac{{y^2}}{{{b**2}}} = 1$ "
+        f"($a > b > 0$)，左、右焦点分别为 $F_1(-{c:.4g}, 0)$、$F_2({c:.4g}, 0)$。\n\n"
+        f"点 $P$ 在椭圆上运动，$G$ 为 $\\triangle F_1PF_2$ 的重心。\n\n"
+        f"(1) 求重心 $G$ 的轨迹方程；\n\n"
+        f"(2) 求重心 $G$ 轨迹的离心率；\n\n"
+        f"(3) 求 $|OG|$ 的取值范围（$O$ 为坐标原点）。"
+    )
+
+    solution_latex = (
+        f"**解：**\n\n"
+        f"(1) 设 $P(x_0, y_0)$，$G(x, y)$。\n\n"
+        f"由重心公式：\n\n"
+        f"$x = \\frac{{x_0 + (-{c:.4g}) + {c:.4g}}}{{3}} = \\frac{{x_0}}{{3}}$\n\n"
+        f"$y = \\frac{{y_0 + 0 + 0}}{{3}} = \\frac{{y_0}}{{3}}$\n\n"
+        f"故 $x_0 = 3x$，$y_0 = 3y$。\n\n"
+        f"代入椭圆方程 $\\frac{{x_0^2}}{{{a**2}}} + \\frac{{y_0^2}}{{{b**2}}} = 1$：\n\n"
+        f"$\\frac{{(3x)^2}}{{{a**2}}} + \\frac{{(3y)^2}}{{{b**2}}} = 1$\n\n"
+        f"$\\frac{{x^2}}{{\\left(\\frac{{{a}}}{{3}}\\right)^2}} + \\frac{{y^2}}{{\\left(\\frac{{{b}}}{{3}}\\right)^2}} = 1$\n\n"
+        f"即 $\\frac{{x^2}}{{{a_G:.4g}^2}} + \\frac{{y^2}}{{{b_G:.4g}^2}} = 1$\n\n"
+        f"重心 $G$ 的轨迹是一个以原点为中心，半长轴 $\\frac{{{a}}}{{3}} = {a_G:.4g}$，"
+        f"半短轴 $\\frac{{{b}}}{{3}} = {b_G:.4g}$ 的椭圆。\n\n"
+        f"(2) $G$ 的轨迹椭圆参数：$a' = \\frac{{{a}}}{{3}} = {a_G:.4g}$，"
+        f"$b' = \\frac{{{b}}}{{3}} = {b_G:.4g}$，"
+        f"$c' = \\sqrt{{a'^2 - b'^2}} = \\frac{{c}}{{3}} = {c/3:.4g}$\n\n"
+        f"离心率 $e' = \\frac{{c'}}{{a'}} = \\frac{{c/3}}{{a/3}} = \\frac{{c}}{{a}} = e = {e:.4g}$\n\n"
+        f"（离心率不变）\n\n"
+        f"(3) $|OG| = \\sqrt{{x^2 + y^2}} = \\frac{{1}}{{3}}\\sqrt{{x_0^2 + y_0^2}}$\n\n"
+        f"$x_0^2 + y_0^2 = x_0^2 + {b**2}\\left(1 - \\frac{{x_0^2}}{{{a**2}}}\\right)"
+        f" = x_0^2 \\cdot \\left(1 - \\frac{{{b**2}}}{{{a**2}}}\\right) + {b**2}"
+        f" = x_0^2 \\cdot {1 - b**2/a**2:.4g} + {b**2}$\n\n"
+        f"当 $x_0 = 0$（$P$ 在短轴端点）时，$|OG|_{{min}} = \\frac{{{b}}}{{3}} = {OG_min:.4g}$\n\n"
+        f"当 $x_0 = \\pm{a}$（$P$ 在长轴端点）时，$|OG|_{{max}} = \\frac{{{a}}}{{3}} = {OG_max:.4g}$\n\n"
+        f"$|OG|$ 的取值范围为 $\\left[\\frac{{{b}}}{{3}}, \\frac{{{a}}}{{3}}\\right]"
+        f" = [{OG_min:.4g}, {OG_max:.4g}]$"
+    )
+
+    return Problem(
+        title=f"椭圆轨迹方程/重心轨迹 (a={a}, b={b})",
+        topic="椭圆", difficulty=3,
+        problem_latex=problem_latex, solution_latex=solution_latex,
+        conic_params=params,
+        points=[F1, F2, P, G],
+        conic_type="ellipse",
+        answer=f"G轨迹: x^2/({a_G:.4g})^2 + y^2/({b_G:.4g})^2 = 1, |OG| in [{OG_min:.4g}, {OG_max:.4g}]"
+    )
+
+
 def generate_hyperbola_dynamic(a=None, b=None, problem_type="basic", slope=None):
     """动态生成双曲线题目"""
     if a is None:
@@ -920,6 +1075,17 @@ def generate_hyperbola_dynamic(a=None, b=None, problem_type="basic", slope=None)
         return _hyperbola_ecc_range(a, b, c, e, params)
     elif problem_type == "tangent":
         return _hyperbola_tangent(a, b, c, e, params)
+    # 新增题型
+    elif problem_type == "optical_property":
+        return _hyperbola_optical_property(a, b, c, e, params)
+    elif problem_type == "locus":
+        return _hyperbola_locus(a, b, c, e, params)
+    elif problem_type == "equilateral_hyperbola":
+        b = a  # 等轴双曲线 a = b
+        c = np.sqrt(a**2 + b**2)
+        e = c / a
+        params = ConicParams(a=a, b=b, c=c, e=e)
+        return _hyperbola_equilateral(a, b, c, e, params)
     else:
         raise ValueError(f"不支持的双曲线题型: {problem_type}")
 
@@ -1445,6 +1611,231 @@ def _hyperbola_tangent(a, b, c, e, params):
     )
 
 
+
+
+# ==================== 双曲线 — 新增题型 ====================
+
+
+def _hyperbola_optical_property(a, b, c, e, params):
+    """双曲线光学性质
+
+    从焦点F₁出发的光线经双曲线反射后，反射光线的反向延长线经过焦点F₂。
+    设P为双曲线上一点，过P的切线与PF₁、PF₂的夹角相等。
+    """
+    F1 = Point(-c, 0, "F_1")
+    F2 = Point(c, 0, "F_2")
+
+    # 取 P(2a, b√3) 在双曲线上: (2a)²/a² - (b√3)²/b² = 4 - 3 = 1
+    x0 = 2 * a
+    y0 = b * np.sqrt(3)
+    P = Point(x0, y0, "P")
+
+    # 焦半径 (右支): |PF₁| = ex₀ + a, |PF₂| = ex₀ - a
+    PF1_len = e * x0 + a
+    PF2_len = e * x0 - a
+
+    # 切线: x₀x/a² - y₀y/b² = 1 → 2x/a - √3y/b = 1 → 2bx - √3ay = ab
+    # 切线方程: 2bx - √3ay - ab = 0
+
+    # F₁到切线的距离: |2b(-c) - ab| / √(4b² + 3a²) = b(2c+a)/√(4b²+3a²)
+    # F₂到切线的距离: |2bc - ab| / √(4b² + 3a²) = b(2c-a)/√(4b²+3a²)
+    denom = np.sqrt(4 * b**2 + 3 * a**2)
+    d_F1 = b * (2 * c + a) / denom
+    d_F2 = b * (2 * c - a) / denom
+
+    # 验证角平分线定理: d₁/d₂ = |PF₁|/|PF₂|
+    ratio_d = d_F1 / d_F2
+    ratio_pf = PF1_len / PF2_len
+
+    problem_latex = (
+        f"已知双曲线 $C$: $\\frac{{x^2}}{{{a**2}}} - \\frac{{y^2}}{{{b**2}}} = 1$ "
+        f"($a > 0$, $b > 0$)，左、右焦点分别为 $F_1(-{c:.4g}, 0)$、$F_2({c:.4g}, 0)$。\n\n"
+        f"点 $P\\left({x0}, {y0:.4g}\\right)$ 在双曲线上。\n\n"
+        f"(1) 求过点 $P$ 的切线方程；\n\n"
+        f"(2) 证明：切线与 $PF_1$、$PF_2$ 的夹角相等；\n\n"
+        f"(3) 利用上述结论说明：从 $F_1$ 发出的光线经双曲线反射后，"
+        f"反射光线的反向延长线经过 $F_2$。"
+    )
+
+    solution_latex = (
+        f"**解：**\n\n"
+        f"(1) 双曲线在 $P\\left({x0}, {y0:.4g}\\right)$ 处的切线方程为：\n\n"
+        f"$\\frac{{x_0 x}}{{{a**2}}} - \\frac{{y_0 y}}{{{b**2}}} = 1$，"
+        f"即 $\\frac{{{x0} \\cdot x}}{{{a**2}}} - \\frac{{{y0:.4g} \\cdot y}}{{{b**2}}} = 1$\n\n"
+        f"化简：$\\frac{{2x}}{{{a}}} - \\frac{{\\sqrt{{3}}y}}{{{b}}} = 1$，即 $2bx - \\sqrt{{3}}ay = ab$\n\n"
+        f"(2) 设切线 $l$: $2bx - \\sqrt{{3}}ay - ab = 0$。\n\n"
+        f"$F_1(-{c:.4g}, 0)$ 到 $l$ 的距离：\n\n"
+        f"$d_1 = \\frac{{|2b \\cdot ({-c:.4g}) - ab|}}{{\\sqrt{{4b^2 + 3a^2}}}} "
+        f"= \\frac{{b(2c + a)}}{{\\sqrt{{4b^2 + 3a^2}}}} = {d_F1:.4g}$\n\n"
+        f"$F_2({c:.4g}, 0)$ 到 $l$ 的距离：\n\n"
+        f"$d_2 = \\frac{{|2b \\cdot {c:.4g} - ab|}}{{\\sqrt{{4b^2 + 3a^2}}}} "
+        f"= \\frac{{b(2c - a)}}{{\\sqrt{{4b^2 + 3a^2}}}} = {d_F2:.4g}$\n\n"
+        f"又 $|PF_1| = ex_0 + a = 2c + a = {PF1_len:.4g}$，"
+        f"$|PF_2| = ex_0 - a = 2c - a = {PF2_len:.4g}$\n\n"
+        f"故 $\\frac{{d_1}}{{d_2}} = \\frac{{2c + a}}{{2c - a}} = "
+        f"\\frac{{|PF_1|}}{{|PF_2|}} = {ratio_d:.4g}$\n\n"
+        f"由角平分线的性质（角平分线上的点到角两边的距离之比等于邻边之比），"
+        f"切线 $l$ 是 $\\angle F_1PF_2$ 的角平分线，"
+        f"即切线与 $PF_1$、$PF_2$ 的夹角相等。\n\n"
+        f"(3) 由(2)，切线是 $\\angle F_1PF_2$ 的角平分线。\n\n"
+        f"根据反射定律（入射角 = 反射角），从 $F_1$ 发出的光线射到 $P$ 点后，\n"
+        f"反射光线沿 $PF_2$ 的方向（即反射光线的反向延长线经过 $F_2$）。\n\n"
+        f"这就是双曲线的光学性质：从一个焦点发出的光线经双曲线反射后，\n"
+        f"反射光线的反向延长线经过另一个焦点。"
+    )
+
+    return Problem(
+        title=f"双曲线光学性质 (a={a}, b={b})",
+        topic="双曲线", difficulty=4,
+        problem_latex=problem_latex, solution_latex=solution_latex,
+        conic_params=params,
+        points=[F1, F2, P], conic_type="hyperbola",
+        answer="切线与PF₁、PF₂夹角相等，满足反射定律"
+    )
+
+
+def _hyperbola_locus(a, b, c, e, params):
+    """双曲线轨迹方程
+
+    已知双曲线 x²/a² - y²/b² = 1，F₁为左焦点，P为双曲线上一动点，
+    M为PF₁的中点，求M的轨迹方程。
+    """
+    F1 = Point(-c, 0, "F_1")
+    F2 = Point(c, 0, "F_2")
+
+    # M 为 PF₁ 的中点: M(x, y) = ((x₀-c)/2, y₀/2)
+    # x₀ = 2x + c, y₀ = 2y
+    # 代入: (2x+c)²/a² - (2y)²/b² = 1
+    # → 4(x+c/2)²/a² - 4y²/b² = 1
+    # → (x+c/2)²/(a/2)² - y²/(b/2)² = 1
+
+    a_new = a / 2
+    b_new = b / 2
+    c_new = np.sqrt(a_new**2 + b_new**2)  # = c/2
+    e_new = c_new / a_new  # = e (离心率不变)
+    center_x = -c / 2
+
+    # 取一个示例点 P
+    x_P = 2 * a  # P 在右支
+    y_P = b * np.sqrt((x_P / a)**2 - 1)
+    P = Point(x_P, y_P, "P")
+
+    # 对应的 M 点
+    M_x = (x_P - c) / 2
+    M_y = y_P / 2
+    M = Point(M_x, M_y, "M")
+
+    problem_latex = (
+        f"已知双曲线 $C$: $\\frac{{x^2}}{{{a**2}}} - \\frac{{y^2}}{{{b**2}}} = 1$ "
+        f"($a > 0$, $b > 0$)，左焦点为 $F_1(-{c:.4g}, 0)$。\n\n"
+        f"点 $P$ 在双曲线上运动，$M$ 为线段 $PF_1$ 的中点。\n\n"
+        f"(1) 设 $P(x_0, y_0)$，$M(x, y)$，用 $x_0$, $y_0$ 表示 $x$, $y$；\n\n"
+        f"(2) 求点 $M$ 的轨迹方程；\n\n"
+        f"(3) 求 $M$ 轨迹的焦点坐标和离心率。"
+    )
+
+    solution_latex = (
+        f"**解：**\n\n"
+        f"(1) 由中点公式：$x = \\frac{{x_0 + (-{c:.4g})}}{{2}} = \\frac{{x_0 - {c:.4g}}}{{2}}$，"
+        f"$y = \\frac{{y_0 + 0}}{{2}} = \\frac{{y_0}}{{2}}$\n\n"
+        f"故 $x_0 = 2x + {c:.4g}$，$y_0 = 2y$。\n\n"
+        f"(2) 将 $x_0 = 2x + {c:.4g}$，$y_0 = 2y$ 代入双曲线方程：\n\n"
+        f"$\\frac{{(2x + {c:.4g})^2}}{{{a**2}}} - \\frac{{(2y)^2}}{{{b**2}}} = 1$\n\n"
+        f"$\\frac{{4\\left(x + \\frac{{{c:.4g}}}{{2}}\\right)^2}}{{{a**2}}} "
+        f"- \\frac{{4y^2}}{{{b**2}}} = 1$\n\n"
+        f"$\\frac{{\\left(x + {c/2:.4g}\\right)^2}}{{\\left(\\frac{{{a}}}{{2}}\\right)^2}} "
+        f"- \\frac{{y^2}}{{\\left(\\frac{{{b}}}{{2}}\\right)^2}} = 1$\n\n"
+        f"即 $\\frac{{\\left(x + {c/2:.4g}\\right)^2}}{{{a_new:.4g}^2}} "
+        f"- \\frac{{y^2}}{{{b_new:.4g}^2}} = 1$\n\n"
+        f"点 $M$ 的轨迹是以 $\\left(-{c/2:.4g}, 0\\right)$ 为中心，"
+        f"实半轴 $a' = {a_new:.4g}$，虚半轴 $b' = {b_new:.4g}$ 的双曲线。\n\n"
+        f"(3) $c' = \\sqrt{{a'^2 + b'^2}} = \\sqrt{{{a_new:.4g}^2 + {b_new:.4g}^2}} = {c_new:.4g}$\n\n"
+        f"焦点：$F_1'(-{c/2 + c_new:.4g}, 0)$，$F_2'(-{c/2 - c_new:.4g}, 0)$\n\n"
+        f"离心率 $e' = \\frac{{c'}}{{a'}} = \\frac{{{c_new:.4g}}}{{{a_new:.4g}}} = {e_new:.4g} = e$\n\n"
+        f"（离心率不变）"
+    )
+
+    return Problem(
+        title=f"双曲线轨迹方程/中点轨迹 (a={a}, b={b})",
+        topic="双曲线", difficulty=3,
+        problem_latex=problem_latex, solution_latex=solution_latex,
+        conic_params=params,
+        points=[F1, F2, P, M], conic_type="hyperbola",
+        answer=f"M轨迹: (x+{c/2:.4g})²/({a_new:.4g})² - y²/({b_new:.4g})² = 1"
+    )
+
+
+def _hyperbola_equilateral(a, b, c, e, params):
+    """等轴双曲线（a=b）的特殊性质
+
+    等轴双曲线：a = b，渐近线互相垂直，e = √2。
+    """
+    F1 = Point(-c, 0, "F_1")
+    F2 = Point(c, 0, "F_2")
+
+    # 等轴双曲线: a = b, c = a√2, e = √2
+    # 渐近线: y = ±x（斜率乘积 = -1，互相垂直）
+
+    # 取 P(2a, a√3) 在双曲线上
+    x0 = 2 * a
+    y0 = a * np.sqrt(3)  # since b = a
+    P = Point(x0, y0, "P")
+
+    # 过 P 作渐近线 y = x 的平行线: y - y0 = 1·(x - x0) → y = x + (y₀ - x₀)
+    # 交另一条渐近线 y = -x 于 Q:
+    # -x = x + (y₀ - x₀) → x = (x₀ - y₀)/2, y = (y₀ - x₀)/2
+    Q_x = (x0 - y0) / 2
+    Q_y = (y0 - x0) / 2
+    Q = Point(Q_x, Q_y, "Q")
+
+    # △OPQ 的面积
+    # 用 Shoelace 公式: S = ½|x_P·y_Q - x_Q·y_P|
+    # = ½|x0·(y0-x0)/2 - (x0-y0)/2·y0|
+    # = ½|(x0·y0 - x0² - x0·y0 + y0²)/2|
+    # = |y0² - x0²|/4
+    # = |a²·3 - 4a²|/4 = a²/4
+    area_OPQ = 0.5 * abs(x0 * Q_y - Q_x * y0)
+    area_formula = a**2 / 4
+
+    problem_latex = (
+        f"已知等轴双曲线 $C$: $\\frac{{x^2}}{{{a**2}}} - \\frac{{y^2}}{{{a**2}}} = 1$ "
+        f"($a > 0$)，左、右焦点分别为 $F_1(-{c:.4g}, 0)$、$F_2({c:.4g}, 0)$。\n\n"
+        f"(1) 求离心率 $e$ 的值；\n\n"
+        f"(2) 证明：两条渐近线互相垂直；\n\n"
+        f"(3) 点 $P\\left({x0}, {y0:.4g}\\right)$ 在双曲线上，"
+        f"过 $P$ 作一条渐近线的平行线，交另一条渐近线于 $Q$，"
+        f"求 $\\triangle OPQ$ 的面积（$O$ 为坐标原点）。"
+    )
+
+    solution_latex = (
+        f"**解：**\n\n"
+        f"(1) 等轴双曲线 $a = b = {a}$，$c = \\sqrt{{a^2 + b^2}} = \\sqrt{{2a^2}} = a\\sqrt{{2}} = {c:.4g}$\n\n"
+        f"离心率 $e = \\frac{{c}}{{a}} = \\frac{{a\\sqrt{{2}}}}{{a}} = \\sqrt{{2}} \\approx {e:.4g}$\n\n"
+        f"(2) 渐近线方程：$y = \\pm\\frac{{b}}{{a}}x = \\pm\\frac{{{a}}}{{{a}}}x = \\pm x$\n\n"
+        f"两条渐近线的斜率分别为 $k_1 = 1$，$k_2 = -1$。\n\n"
+        f"$k_1 \\cdot k_2 = 1 \\cdot (-1) = -1$\n\n"
+        f"故两条渐近线互相垂直。\n\n"
+        f"(3) 渐近线 $l_1$: $y = x$，$l_2$: $y = -x$。\n\n"
+        f"过 $P\\left({x0}, {y0:.4g}\\right)$ 作 $l_1$ 的平行线：\n\n"
+        f"$y - {y0:.4g} = 1 \\cdot (x - {x0})$，即 $y = x + ({y0:.4g} - {x0})$\n\n"
+        f"交 $l_2$: $y = -x$ 于 $Q$：\n\n"
+        f"$-x = x + ({y0:.4g} - {x0})$，解得 $x_Q = \\frac{{{x0} - {y0:.4g}}}{{2}} = {Q_x:.4g}$\n\n"
+        f"$y_Q = -x_Q = {Q_y:.4g}$，即 $Q\\left({Q_x:.4g}, {Q_y:.4g}\\right)$\n\n"
+        f"$S_{{\\triangle OPQ}} = \\frac{{1}}{{2}}|x_P y_Q - x_Q y_P| "
+        f"= \\frac{{1}}{{2}}\\left|{x0} \\cdot ({Q_y:.4g}) - ({Q_x:.4g}) \\cdot {y0:.4g}\\right| "
+        f"= {area_OPQ:.4g}$\n\n"
+        f"一般地，$S_{{\\triangle OPQ}} = \\frac{{a^2}}{{4}} = {area_formula:.4g}$（定值，与 $P$ 的位置无关）。"
+    )
+
+    return Problem(
+        title=f"等轴双曲线性质 (a={a})",
+        topic="双曲线", difficulty=2,
+        problem_latex=problem_latex, solution_latex=solution_latex,
+        conic_params=params,
+        points=[F1, F2, P, Q, Point(0, 0, "O")], conic_type="hyperbola",
+        answer=f"e=√2, 渐近线⊥, S_△OPQ = a²/4 = {area_formula:.4g}"
+    )
+
 # ==================== 抛物线 — 进阶题型 ====================
 
 def _parabola_midpoint_chord(p, params, F):
@@ -1604,6 +1995,111 @@ def _parabola_slope_product(p, params, F):
         conic_params=params, points=[F, V], conic_type="parabola",
         answer=f"y₁y₂ = -4p² = {-4*p**2}, AB过({2*p}, 0)"
     )
+
+
+def _parabola_optical_property(p, params, F):
+    """抛物线光学性质：平行于对称轴的光线经抛物线反射后经过焦点"""
+    V = Point(0, 0, "O")
+    directrix = Line(1, 0, p / 2, "x = -\\frac{p}{2}")
+
+    t_val = 2
+    x0_val = t_val**2 * p / 2
+    y0_val = t_val * p
+    P = Point(x0_val, y0_val, "P")
+
+    k_tangent = p / y0_val
+
+    T = Point(-x0_val, 0, "T")
+
+    PF = x0_val + p / 2
+
+    PT = np.sqrt(4 * x0_val**2 + y0_val**2)
+
+    problem_latex = (
+        f"已知抛物线 $C$: $y^2 = {2*p}x$（$p > 0$），"
+        f"焦点 $F\\left(\\frac{{p}}{{2}}, 0\\right)$，"
+        f"准线 $l$: $x = -\\frac{{p}}{{2}}$。\n\n"
+        f"点 $P\\left({x0_val:.4g}, {y0_val:.4g}\\right)$ 在抛物线上，"
+        f"过 $P$ 作抛物线的切线，交 $x$ 轴于点 $T$。\n\n"
+        f"(1) 求过点 $P$ 的切线方程及点 $T$ 的坐标；\n\n"
+        f"(2) 证明：入射角等于反射角，即平行于 $x$ 轴的光线经抛物线反射后通过焦点；\n\n"
+        f"(3) 利用上述结论说明抛物线的光学性质。")
+
+    solution_latex = (
+        f"**解：**\n\n"
+        f"(1) 抛物线 $y^2 = {2*p}x$，对 $x$ 求导：$2y \\cdot y' = {2*p}$，$y' = \\frac{{p}}{{y}}$\n\n"
+        f"在点 $P\\left({x0_val:.4g}, {y0_val:.4g}\\right)$ 处，切线斜率 $k = \\frac{{p}}{{{y0_val:.4g}}} = {k_tangent:.4g}$\n\n"
+        f"切线方程：$y - {y0_val:.4g} = {k_tangent:.4g}\\left(x - {x0_val:.4g}\\right)$\n\n"
+        f"即 $y_0 y = p(x + x_0)$，展开得 $y = {k_tangent:.4g}x + {y0_val/2:.4g}$\n\n"
+        f"令 $y = 0$，解得 $x = -{x0_val:.4g}$，故 $T(-{x0_val:.4g}, 0)$\n\n"
+        f"(2) 计算相关向量：\n\n"
+        f"入射方向 $\\vec{{d_{{in}}}} = (1, 0)$（平行于 $x$ 轴）\n\n"
+        f"反射方向 $\\vec{{d_{{out}}}} = \\overrightarrow{{PF}} = ({p/2 - x0_val:.4g}, {-y0_val:.4g})$\n\n"
+        f"切线方向 $\\vec{{t}} = (1, {k_tangent:.4g})$，法线方向 $\\vec{{n}} = (-{k_tangent:.4g}, 1)$\n\n"
+        f"入射角的余弦值：\n\n"
+        f"$\\cos\\theta_{{in}} = \\frac{{|\\vec{{d_{{in}}}} \\cdot \\vec{{n}}|}}{{|\\vec{{d_{{in}}}}| \\cdot |\\vec{{n}}|}} = \\frac{{|{-k_tangent:.4g}|}}{{1 \\times \\sqrt{{{k_tangent**2:.4g} + 1}}}} = \\frac{{p}}{{\\sqrt{{y_0^2 + p^2}}}}$\n\n"
+        f"反射角的余弦值：\n\n"
+        f"$\\overrightarrow{{PF}} \\cdot \\vec{{n}} = ({p/2 - x0_val:.4g})\\cdot({-k_tangent:.4g}) + ({-y0_val:.4g})\\cdot 1 = {abs(p/2 - x0_val) * k_tangent - y0_val:.4g}$\n\n"
+        f"$|\\overrightarrow{{PF}}| = |PF| = x_0 + \\frac{{p}}{{2}} = {PF:.4g}$\n\n"
+        f"$\\cos\\theta_{{out}} = \\frac{{p}}{{\\sqrt{{y_0^2 + p^2}}}} = \\cos\\theta_{{in}}$\n\n"
+        f"故 $\\theta_{{in}} = \\theta_{{out}}$，入射角等于反射角。\n\n"
+        f"(3) 由(2)知，平行于对称轴的光线经抛物线上任意一点 $P$ 反射后，"
+        f"反射光线必经过焦点 $F$。\n\n"
+        f"这就是抛物线的**光学性质**，广泛应用于卫星天线、汽车前灯、太阳能聚光器等设计中。"
+    )
+
+    return Problem(
+        title=f"抛物线光学性质 (p={p})",
+        topic="抛物线", difficulty=4,
+        problem_latex=problem_latex, solution_latex=solution_latex,
+        conic_params=params,
+        points=[F, V, P, T], lines=[directrix],
+        conic_type="parabola",
+        answer="入射角等于反射角，平行于轴的光线经抛物线反射后过焦点")
+
+
+def _parabola_locus(p, params, F):
+    """抛物线轨迹方程：给定约束条件，求某点的轨迹方程"""
+    V = Point(0, 0, "O")
+    directrix = Line(1, 0, p / 2, "x = -\\frac{p}{2}")
+
+    problem_latex = (
+        f"已知定点 $F\\left(\\frac{{p}}{{2}}, 0\\right) = F\\left({p/2:.4g}, 0\\right)$，"
+        f"定直线 $l$: $x = -\\frac{{p}}{{2}} = -{p/2:.4g}$。\n\n"
+        f"设动点 $M(x, y)$ 到定点 $F$ 的距离等于到定直线 $l$ 的距离。\n\n"
+        f"(1) 求动点 $M$ 的轨迹方程；\n\n"
+        f"(2) 说明该轨迹是什么曲线，并求其焦点和准线；\n\n"
+        f"(3) 设 $A$ 为轨迹上一点，$|AF| = {p}$，求点 $A$ 的坐标。")
+
+    A1 = Point(p / 2, p, "A_1")
+    A2 = Point(p / 2, -p, "A_2")
+
+    solution_latex = (
+        f"**解：**\n\n"
+        f"(1) 设 $M(x, y)$，由题意：\n\n"
+        f"$\\sqrt{{\\left(x - {p/2:.4g}\\right)^2 + y^2}} = \\left|x - \\left(-{p/2:.4g}\\right)\\right| = \\left|x + {p/2:.4g}\\right|$\n\n"
+        f"两边平方：$\\left(x - {p/2:.4g}\\right)^2 + y^2 = \\left(x + {p/2:.4g}\\right)^2$\n\n"
+        f"展开：$x^2 - {p}x + {p**2/4:.4g} + y^2 = x^2 + {p}x + {p**2/4:.4g}$\n\n"
+        f"化简：$y^2 = {2*p}x$\n\n"
+        f"故动点 $M$ 的轨迹方程为 $\\boxed{{y^2 = {2*p}x}}$\n\n"
+        f"(2) 轨迹 $y^2 = {2*p}x$ 是开口向右的抛物线。\n\n"
+        f"其中 $2p = {2*p}$，即参数 $p = {p}$。\n\n"
+        f"焦点 $F\\left(\\frac{{p}}{{2}}, 0\\right) = \\left({p/2:.4g}, 0\\right)$\n\n"
+        f"准线 $l$: $x = -\\frac{{p}}{{2}} = -{p/2:.4g}$\n\n"
+        f"离心率 $e = 1$（抛物线的离心率恒为 $1$）\n\n"
+        f"(3) 由抛物线定义，$|AF| = x_A + \\frac{{p}}{{2}} = {p}$，解得 $x_A = {p} - {p/2:.4g} = {p/2:.4g}$\n\n"
+        f"$y_A^2 = {2*p} \\cdot {p/2:.4g} = {p**2:.4g}$，$y_A = \\pm{p}$\n\n"
+        f"$A_1\\left({p/2:.4g}, {p}\\right)$，$A_2\\left({p/2:.4g}, -{p}\\right)$"
+    )
+
+    return Problem(
+        title=f"抛物线轨迹方程 (p={p})",
+        topic="抛物线", difficulty=2,
+        problem_latex=problem_latex, solution_latex=solution_latex,
+        conic_params=params,
+        points=[F, V, A1, A2], lines=[directrix],
+        conic_type="parabola",
+        answer=f"y^2 = {2*p}x")
 
 
 def _parabola_ecc_range(p, params, F):
@@ -1902,6 +2398,10 @@ def generate_parabola_dynamic(p=None, problem_type="basic", slope=None):
         return _parabola_fixed_point(p, params, F)
     elif problem_type == "ecc_range":
         return _parabola_ecc_range(p, params, F)
+    elif problem_type == "optical_property":
+        return _parabola_optical_property(p, params, F)
+    elif problem_type == "locus":
+        return _parabola_locus(p, params, F)
     else:
         raise ValueError(f"不支持的抛物线题型: {problem_type}")
 
@@ -2143,6 +2643,8 @@ def generate_polar_dynamic(r=None, problem_type="basic", angle=None):
         return _polar_second_def(r, params)
     elif problem_type == "area_opt":
         return _polar_area_opt(r, params)
+    elif problem_type == "conic_unified":
+        return _polar_conic_unified(r, params)
     else:
         raise ValueError(f"不支持的极坐标题型: {problem_type}")
 
@@ -2230,6 +2732,69 @@ def _polar_conic(r, params):
         problem_latex=problem_latex, solution_latex=solution_latex,
         conic_params=params, points=[O], conic_type="polar",
         answer=f"\\rho = \\frac{{3}}{{2 - \\cos\\theta}}"
+    )
+
+
+def _polar_conic_unified(r, params):
+    """圆锥曲线统一极坐标方程（焦点弦长、通径等）
+
+    以焦点为极点的椭圆/双曲线/抛物线统一方程 ρ = ep/(1 - e·cosθ)
+    求焦点弦长、通径等。
+    """
+    O = Point(0, 0, "O")
+
+    e_val = 0.5
+    p_val = 3
+    angle_val = np.pi / 3
+
+    # Compute values for solution
+    cos_a = np.cos(angle_val)
+    ep = e_val * p_val  # = 1.5
+
+    # Focal chord length via polar formula: |AB| = 2ep / (1 - e^2 * cos^2(alpha))
+    focal_chord = 2 * ep / (1 - e_val**2 * cos_a**2)
+
+    problem_latex = (
+        f"在极坐标系中，以椭圆的左焦点 $F$ 为极点，$x$ 轴正方向为极轴建立极坐标系。"
+        f"已知椭圆的离心率 $e = \\frac{{1}}{{2}}$，"
+        f"焦点到相应准线的距离 $p = 3$。\n\n"
+        f"(1) 求椭圆的极坐标方程 $\\rho = \\frac{{ep}}{{1 - e\\cos\\theta}}$；\n\n"
+        f"(2) 将极坐标方程化为直角坐标方程，并求椭圆的中心、长半轴和短半轴；\n\n"
+        f"(3) 过极点（焦点）作射线 $\\theta = \\frac{{\\pi}}{{3}}$ 交椭圆于 $A$、$B$ 两点，"
+        f"利用韦达定理求焦点弦 $|AB|$ 的长。"
+    )
+
+    solution_latex = (
+        f"**解：**\n\n"
+        f"(1) 代入 $e = \\frac{{1}}{{2}}$，$p = 3$：\n\n"
+        f"$\\rho = \\frac{{\\frac{{1}}{{2}} \\times 3}}{{1 - \\frac{{1}}{{2}}\\cos\\theta}} = \\frac{{3}}{{2 - \\cos\\theta}}$\n\n"
+        f"(2) 由 $\\rho = \\frac{{3}}{{2 - \\cos\\theta}}$，得 $\\rho(2 - \\cos\\theta) = 3$，即 $2\\rho - \\rho\\cos\\theta = 3$。\n\n"
+        f"代入 $\\rho = \\sqrt{{x^2+y^2}}$，$\\rho\\cos\\theta = x$：\n\n"
+        f"$2\\sqrt{{x^2+y^2}} = x + 3$，两边平方：\n\n"
+        f"$4(x^2+y^2) = x^2 + 6x + 9$\n\n"
+        f"$3x^2 + 4y^2 - 6x - 9 = 0$，配方：$3(x-1)^2 + 4y^2 = 12$\n\n"
+        f"$$\\frac{{(x-1)^2}}{{4}} + \\frac{{y^2}}{{3}} = 1$$\n\n"
+        f"椭圆中心 $(1, 0)$，$a = 2$，$b = \\sqrt{{3}}$。\n\n"
+        f"(3) 焦点 $F$（即极点）在直角坐标系中的位置：\n\n"
+        f"椭圆中心 $(1,0)$，$c = \\sqrt{{a^2-b^2}} = 1$，左焦点 $F(0, 0)$。\n\n"
+        f"以 $F$ 为原点，射线 $\\theta = \\frac{{\\pi}}{{3}}$ 对应直线 $y = \\sqrt{{3}}x$。\n\n"
+        f"椭圆在 $F$ 为原点的坐标系中方程为 $\\frac{{(x+1)^2}}{{4}} + \\frac{{y^2}}{{3}} = 1$。\n\n"
+        f"代入 $y = \\sqrt{{3}}x$：$\\frac{{(x+1)^2}}{{4}} + x^2 = 1$\n\n"
+        f"化简：$(x+1)^2 + 4x^2 = 4$，即 $5x^2 + 2x - 3 = 0$。\n\n"
+        f"由韦达定理：$x_1 + x_2 = -\\frac{{2}}{{5}}$，$x_1 x_2 = -\\frac{{3}}{{5}}$。\n\n"
+        f"$|x_1 - x_2| = \\sqrt{{(x_1+x_2)^2 - 4x_1 x_2}} = \\sqrt{{\\frac{{4}}{{25}} + \\frac{{12}}{{5}}}} = \\sqrt{{\\frac{{64}}{{25}}}} = \\frac{{8}}{{5}}$\n\n"
+        f"两交点为 $(x_1, \\sqrt{{3}}x_1)$ 和 $(x_2, \\sqrt{{3}}x_2)$：\n\n"
+        f"$|AB|^2 = (x_1-x_2)^2 + 3(x_1-x_2)^2 = 4(x_1-x_2)^2 = \\frac{{256}}{{25}}$\n\n"
+        f"$|AB| = \\frac{{16}}{{5}} = {focal_chord:.4g}$\n\n"
+        f"验证：由焦点弦公式 $|AB| = \\frac{{2ep}}{{1 - e^2\\cos^2\\alpha}} = \\frac{{3}}{{1 - \\frac{{1}}{{16}}}} = \\frac{{3}}{{\\frac{{15}}{{16}}}} = \\frac{{16}}{{5}}$ $\\checkmark$"
+    )
+
+    return Problem(
+        title="圆锥曲线统一极坐标方程 (e=1/2, p=3)",
+        topic="极坐标", difficulty=3,
+        problem_latex=problem_latex, solution_latex=solution_latex,
+        conic_params=params, points=[O], conic_type="polar",
+        answer=f"|AB| = 16/5 = {focal_chord:.4g}"
     )
 
 
