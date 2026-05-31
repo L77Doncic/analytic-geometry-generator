@@ -39,4 +39,6 @@ output/
 
 # Docs (local only, not pushed to GitHub)
 docs/
-presentation.html
+
+# Claude Code worktrees
+.claude/
