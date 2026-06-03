@@ -37,8 +37,5 @@ create_ppt.py
 create_defense_ppt.py
 output/
 
-# Docs (local only, not pushed to GitHub)
-docs/
-
 # Claude Code worktrees
 .claude/
