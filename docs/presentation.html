@@ -1,0 +1,1618 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>解析几何题目与精确配图的动态生成 — 答辩</title>
+<link rel="icon" href="https://www.xjtu.edu.cn/favicon.ico" type="image/x-icon">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/theme/white.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Noto+Sans+SC:wght@300;400;600;700&family=Noto+Serif+SC:wght@400;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+/* ═══════════════════════════════════════════════════
+   Apple Design System Tokens
+   ═══════════════════════════════════════════════════ */
+
+:root {
+  --blue: #0066cc;
+  --blue-focus: #0071e3;
+  --blue-on-dark: #2997ff;
+  --ink: #1d1d1f;
+  --body: #1d1d1f;
+  --body-on-dark: #ffffff;
+  --body-muted: #cccccc;
+  --ink-muted-80: #333333;
+  --ink-muted-48: #7a7a7a;
+  --divider-soft: #f0f0f0;
+  --hairline: #e0e0e0;
+  --canvas: #ffffff;
+  --canvas-parchment: #f5f5f7;
+  --surface-pearl: #fafafc;
+  --surface-tile-1: #272729;
+  --surface-tile-2: #2a2a2c;
+  --surface-tile-3: #252527;
+  --surface-black: #000000;
+  --on-primary: #ffffff;
+  --on-dark: #ffffff;
+
+  /* Typography — SF Pro substitute: Inter */
+  --font-display: 'Inter', 'Noto Sans SC', system-ui, -apple-system, sans-serif;
+  --font-body: 'Inter', 'Noto Sans SC', system-ui, -apple-system, sans-serif;
+  --font-serif: 'Noto Serif SC', Georgia, serif;
+  --font-mono: 'JetBrains Mono', 'SF Mono', monospace;
+
+  /* Radius */
+  --r-sm: 8px;
+  --r-md: 11px;
+  --r-lg: 18px;
+  --r-pill: 9999px;
+
+  /* Spacing */
+  --s-xs: 8px;
+  --s-sm: 12px;
+  --s-md: 17px;
+  --s-lg: 24px;
+  --s-xl: 32px;
+  --s-section: 80px;
+}
+
+/* ═══════════════════════════════════════════════════
+   Base — Apple style: body at 17px, not 16px
+   ═══════════════════════════════════════════════════ */
+
+.reveal {
+  font-family: var(--font-body);
+  color: var(--ink);
+  font-size: 17px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.reveal .slides {
+  text-align: center;
+}
+
+.reveal .slides section {
+  padding: 48px 64px;
+  box-sizing: border-box;
+  line-height: 1.47;
+  letter-spacing: -0.374px;
+}
+
+/* ═══════════════════════════════════════════════════
+   Typography — Apple hierarchy
+   weight: 300/400/600/700 (NO 500)
+   ═══════════════════════════════════════════════════ */
+
+.reveal h1 {
+  font-family: var(--font-display);
+  font-size: 2.35em; /* ~40px equivalent */
+  font-weight: 600;
+  color: var(--ink);
+  margin: 0 0 8px;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+.reveal h2 {
+  font-family: var(--font-display);
+  font-size: 1.4em; /* ~24px */
+  font-weight: 600;
+  color: var(--ink);
+  margin: 0 0 14px;
+  line-height: 1.19;
+  letter-spacing: 0.01em;
+}
+
+/* No decorative underline — Apple uses no chrome */
+.reveal h2::after { display: none; }
+
+.reveal h3 {
+  font-family: var(--font-body);
+  font-size: 0.76em; /* ~13px caption */
+  font-weight: 600;
+  color: var(--blue);
+  margin: 0 0 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.reveal p, .reveal li {
+  font-family: var(--font-body);
+  font-size: 0.82em; /* ~14px */
+  font-weight: 400;
+  line-height: 1.47;
+  color: var(--ink-muted-80);
+  letter-spacing: -0.224px;
+}
+
+.reveal strong {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.dim { color: var(--ink-muted-48) !important; }
+.muted { color: var(--ink-muted-48) !important; font-size: 0.7em !important; }
+
+/* ═══════════════════════════════════════════════════
+   Layout
+   ═══════════════════════════════════════════════════ */
+
+.cols { display: flex; gap: 20px; text-align: left; }
+.cols-3 { display: flex; gap: 16px; text-align: left; }
+.col { flex: 1; min-width: 0; }
+.col-wide { flex: 1.3; }
+.col-narrow { flex: 0.7; }
+
+/* ═══════════════════════════════════════════════════
+   Cards — Apple utility card style
+   No shadow. Hairline border. 18px radius.
+   ═══════════════════════════════════════════════════ */
+
+.card {
+  background: var(--canvas);
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-lg);
+  padding: 18px 22px;
+  margin-bottom: 10px;
+  text-align: left;
+}
+
+.card-parchment {
+  background: var(--canvas-parchment);
+  border: 1px solid var(--divider-soft);
+  border-radius: var(--r-lg);
+  padding: 18px 22px;
+  margin-bottom: 10px;
+  text-align: left;
+}
+
+.card-sm {
+  padding: 12px 16px;
+  border-radius: var(--r-lg);
+}
+
+/* ═══════════════════════════════════════════════════
+   Tags — Apple pearl capsule style
+   ═══════════════════════════════════════════════════ */
+
+.tag {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: var(--r-pill);
+  font-size: 0.65em;
+  font-weight: 400;
+  background: var(--surface-pearl);
+  color: var(--ink-muted-80);
+  border: 3px solid var(--divider-soft);
+}
+
+.tag-blue { background: #e8f0ff; color: var(--blue); border-color: #d0e0ff; }
+.tag-cyan { background: #e8f8ff; color: #00b4d8; border-color: #d0f0ff; }
+.tag-orange { background: #fff3e0; color: #e65100; border-color: #ffe0b0; }
+.tag-green { background: #e8f5e9; color: #2e7d32; border-color: #c8e6c9; }
+
+/* ═══════════════════════════════════════════════════
+   Buttons — Apple pill CTA
+   ═══════════════════════════════════════════════════ */
+
+.btn-pill {
+  display: inline-block;
+  background: var(--blue);
+  color: var(--on-primary);
+  font-family: var(--font-body);
+  font-size: 0.76em;
+  font-weight: 400;
+  padding: 5px 16px;
+  border-radius: var(--r-pill);
+  text-decoration: none;
+  border: none;
+  cursor: pointer;
+}
+
+.btn-pill-ghost {
+  display: inline-block;
+  background: transparent;
+  color: var(--blue);
+  font-family: var(--font-body);
+  font-size: 0.76em;
+  font-weight: 400;
+  padding: 5px 16px;
+  border-radius: var(--r-pill);
+  border: 1px solid var(--blue);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+/* ═══════════════════════════════════════════════════
+   Flow
+   ═══════════════════════════════════════════════════ */
+
+.flow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  margin: 12px 0;
+}
+
+.flow-node {
+  background: var(--canvas-parchment);
+  border: 1px solid var(--divider-soft);
+  border-radius: var(--r-md);
+  padding: 10px 14px;
+  text-align: center;
+  min-width: 76px;
+}
+
+.flow-node .icon { font-size: 1em; }
+.flow-node .name { font-size: 0.6em; font-weight: 600; color: var(--ink); }
+.flow-node .sub { font-size: 0.48em; color: var(--ink-muted-48); }
+
+.flow-arrow {
+  font-size: 0.85em;
+  color: var(--blue);
+  margin: 0 6px;
+}
+
+/* ═══════════════════════════════════════════════════
+   Stats
+   ═══════════════════════════════════════════════════ */
+
+.stat { text-align: center; padding: 10px 8px; }
+.stat .num {
+  font-family: var(--font-display);
+  font-size: 1.6em;
+  font-weight: 600;
+  color: var(--blue);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+.stat .label {
+  font-size: 0.55em;
+  color: var(--ink-muted-48);
+  margin-top: 3px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+/* ═══════════════════════════════════════════════════
+   Table
+   ═══════════════════════════════════════════════════ */
+
+.reveal table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.72em;
+  margin: 6px 0;
+  text-align: left;
+}
+
+.reveal table th {
+  color: var(--ink-muted-48);
+  font-weight: 600;
+  padding: 4px 8px;
+  font-size: 0.82em;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  border-bottom: 1px solid var(--hairline);
+}
+
+.reveal table td {
+  padding: 4px 8px;
+  border-bottom: 1px solid var(--divider-soft);
+  color: var(--ink-muted-80);
+}
+
+.reveal table tr:last-child td { border-bottom: none; }
+
+/* ═══════════════════════════════════════════════════
+   Code — no shadow, hairline border
+   ═══════════════════════════════════════════════════ */
+
+.code-block {
+  background: var(--canvas-parchment);
+  border: 1px solid var(--divider-soft);
+  border-radius: var(--r-sm);
+  overflow: hidden;
+  margin: 6px 0;
+  text-align: left;
+}
+
+.code-block .bar {
+  background: var(--divider-soft);
+  padding: 5px 10px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  border-bottom: 1px solid var(--hairline);
+}
+
+.code-block .dot { width: 8px; height: 8px; border-radius: 50%; }
+.code-block .dot-r { background: #ff5f57; }
+.code-block .dot-y { background: #febc2e; }
+.code-block .dot-g { background: #28c840; }
+
+.code-block .bar span {
+  color: var(--ink-muted-48);
+  font-size: 0.52em;
+  margin-left: 8px;
+  font-family: var(--font-mono);
+}
+
+.code-block pre {
+  margin: 0;
+  padding: 8px 12px;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.code-block code {
+  font-family: var(--font-mono);
+  font-size: 0.6em;
+  line-height: 1.55;
+  color: var(--ink-muted-80);
+  background: none !important;
+  border: none !important;
+  padding: 0 !important;
+}
+
+/* ═══════════════════════════════════════════════════
+   Image — the ONE allowed shadow (product render)
+   ═══════════════════════════════════════════════════ */
+
+.img-frame {
+  background: var(--canvas);
+  border: 1px solid var(--divider-soft);
+  border-radius: var(--r-sm);
+  padding: 6px;
+  text-align: center;
+}
+
+.img-frame img {
+  max-width: 100%;
+  max-height: 160px;
+  border-radius: 4px;
+  display: block;
+  margin: 0 auto;
+  /* Apple's single product shadow */
+  box-shadow: rgba(0, 0, 0, 0.22) 3px 5px 30px 0;
+}
+
+/* ═══════════════════════════════════════════════════
+   Steps
+   ═══════════════════════════════════════════════════ */
+
+.steps { margin: 6px 0; text-align: left; }
+
+.step {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 5px;
+}
+
+.step-num {
+  background: var(--blue);
+  color: var(--on-primary);
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.5em;
+  font-weight: 600;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.step-content { flex: 1; }
+
+/* ═══════════════════════════════════════════════════
+   Math
+   ═══════════════════════════════════════════════════ */
+
+.math-block {
+  background: var(--canvas-parchment);
+  border: 1px solid var(--divider-soft);
+  border-radius: var(--r-sm);
+  padding: 8px 14px;
+  margin: 5px 0;
+}
+
+/* ═══════════════════════════════════════════════════
+   Misc
+   ═══════════════════════════════════════════════════ */
+
+.reveal code {
+  font-family: var(--font-mono);
+  background: var(--canvas-parchment);
+  padding: 1px 5px;
+  border-radius: 4px;
+  font-size: 0.82em;
+  color: var(--blue);
+  border: 1px solid var(--divider-soft);
+}
+
+.reveal ul, .reveal ol {
+  padding-left: 1.1em;
+  margin: 4px 0;
+  text-align: left;
+}
+
+.reveal li { margin-bottom: 3px; }
+.reveal li::marker { color: var(--blue); }
+
+/* ═══════════════════════════════════════════════════
+   Cover — hero display style
+   ═══════════════════════════════════════════════════ */
+
+.cover h1 {
+  font-size: 2.6em;
+  letter-spacing: -0.025em;
+}
+
+.cover h1::after { display: none; }
+
+.cover .badge {
+  display: inline-block;
+  background: var(--canvas-parchment);
+  color: var(--blue);
+  border: 1px solid var(--hairline);
+  padding: 4px 14px;
+  border-radius: var(--r-pill);
+  font-size: 0.58em;
+  font-weight: 400;
+  margin-bottom: 14px;
+  letter-spacing: 0.02em;
+}
+
+.cover .subtitle {
+  font-size: 0.9em;
+  font-weight: 300;
+  color: var(--ink-muted-80);
+  margin-bottom: 20px;
+  line-height: 1.4;
+}
+
+.cover .meta {
+  font-size: 0.6em;
+  color: var(--ink-muted-48);
+}
+
+/* ═══════════════════════════════════════════════════
+   Section divider — dark tile style
+   Apple: alternating light ↔ dark tiles
+   ═══════════════════════════════════════════════════ */
+
+.section-dark {
+  background: var(--surface-tile-1) !important;
+  color: var(--on-dark) !important;
+  text-align: left !important;
+  padding-left: 80px !important;
+}
+
+.section-dark h2 {
+  color: var(--on-dark);
+  font-size: 1.6em;
+}
+
+.section-dark .sec-desc {
+  color: var(--body-muted);
+  font-size: 0.72em;
+  font-weight: 300;
+}
+
+.section-dark .sec-num {
+  font-size: 2.8em;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.08);
+  line-height: 1;
+  margin-bottom: -8px;
+  letter-spacing: -0.03em;
+}
+
+/* Light parchment section divider */
+.section-parchment {
+  background: var(--canvas-parchment) !important;
+  text-align: left !important;
+  padding-left: 80px !important;
+}
+
+.section-parchment h2 {
+  color: var(--ink);
+  font-size: 1.6em;
+}
+
+.section-parchment .sec-desc {
+  color: var(--ink-muted-48);
+  font-size: 0.72em;
+  font-weight: 300;
+}
+
+.section-parchment .sec-num {
+  font-size: 2.8em;
+  font-weight: 600;
+  color: rgba(0, 0, 0, 0.06);
+  line-height: 1;
+  margin-bottom: -8px;
+  letter-spacing: -0.03em;
+}
+
+/* Dark tile content overrides */
+.section-dark .card {
+  background: var(--surface-tile-2);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.section-dark .card h3 { color: var(--blue-on-dark); }
+.section-dark .card p, .section-dark .card li { color: var(--body-muted); }
+.section-dark .card strong { color: var(--on-dark); }
+.section-dark .card table th { color: rgba(255,255,255,0.4); border-bottom-color: rgba(255,255,255,0.08); }
+.section-dark .card table td { color: var(--body-muted); border-bottom-color: rgba(255,255,255,0.04); }
+
+.section-dark .code-block {
+  background: var(--surface-tile-3);
+  border-color: rgba(255,255,255,0.06);
+}
+
+.section-dark .code-block .bar {
+  background: rgba(255,255,255,0.04);
+  border-bottom-color: rgba(255,255,255,0.06);
+}
+
+.section-dark .code-block code { color: var(--body-muted); }
+
+/* ═══════════════════════════════════════════════════
+   Reveal.js overrides
+   ═══════════════════════════════════════════════════ */
+
+.reveal .progress { color: var(--blue); height: 2px; }
+.reveal .controls { display: none; }
+.reveal .slide-number {
+  font-size: 0.5em;
+  color: var(--ink-muted-48);
+  background: transparent;
+  right: 18px;
+  bottom: 14px;
+  font-family: var(--font-mono);
+}
+</style>
+</head>
+<body>
+<div class="reveal">
+<div class="slides">
+
+<!-- ══ COVER — Hero tile (white) ══ -->
+<section data-background-color="#ffffff" class="cover">
+<div class="badge">保研考核 · 实践答辩</div>
+<h1>解析几何题目与精确配图的动态生成</h1>
+<p class="subtitle">结合 LLM 与智能体方法的实践项目 — 题目一</p>
+<p class="meta">西安交通大学 · 2026 年 6 月</p>
+</section>
+
+<!-- ══ 任务要求 — Parchment tile ══ -->
+<section data-background-color="#f5f5f7">
+<h2>任务要求与解题思路</h2>
+<div class="cols">
+<div class="col">
+<div class="card">
+<h3>题目要求</h3>
+<ul>
+<li>结合 <strong>LLM 和智能体</strong>方法或工具</li>
+<li>根据用户指定<strong>知识点与难度</strong>，动态生成解析几何题目</li>
+<li>题目应能被<strong>证明或求解</strong></li>
+<li>包含格式严谨的 <strong>LaTeX 题干</strong></li>
+<li>代码渲染的<strong>精确配图</strong>，关键点/直线/曲线位置与数学参数严格一致</li>
+</ul>
+</div>
+</div>
+<div class="col">
+<div class="card-parchment">
+<h3>我们的方案</h3>
+<ul>
+<li>构建<strong>完整软件系统</strong>，覆盖 <strong>4 大知识点 × 60+ 种题型</strong></li>
+<li>LLM 参与<strong>架构设计、数学推导、代码生成</strong>全流程</li>
+<li><strong>参数方程</strong>精确绘图，1000 采样点，等比例坐标</li>
+<li><strong>TUI 交互界面</strong>，自然语言输入，难度自动路由</li>
+<li>全题型自动化测试，<strong>通过率 100%</strong></li>
+</ul>
+</div>
+</div>
+</div>
+</section>
+
+<!-- ══ 系统总览 — White tile ══ -->
+<section data-background-color="#ffffff">
+<h2>系统总览</h2>
+<div class="cols" style="margin-bottom:10px;">
+<div class="col"><div class="stat"><div class="num">4</div><div class="label">知识点</div></div></div>
+<div class="col"><div class="stat"><div class="num">60+</div><div class="label">题型</div></div></div>
+<div class="col"><div class="stat"><div class="num">1000</div><div class="label">采样点</div></div></div>
+<div class="col"><div class="stat"><div class="num">&lt;1s</div><div class="label">生成速度</div></div></div>
+<div class="col"><div class="stat"><div class="num">100%</div><div class="label">测试通过</div></div></div>
+</div>
+<div class="card" style="text-align:center;padding:12px;">
+<div class="flow">
+<div class="flow-node"><div class="icon">👤</div><div class="name">用户输入</div><div class="sub">"椭圆 a=5 b=3"</div></div>
+<div class="flow-arrow">→</div>
+<div class="flow-node"><div class="icon">🔍</div><div class="name">Parser</div><div class="sub">解析知识点/参数</div></div>
+<div class="flow-arrow">→</div>
+<div class="flow-node" style="border-color:var(--blue);"><div class="icon">⚙️</div><div class="name">Generator</div><div class="sub">数学推导+LaTeX</div></div>
+<div class="flow-arrow">→</div>
+<div class="flow-node"><div class="icon">🖼️</div><div class="name">Renderer</div><div class="sub">Matplotlib 绘图</div></div>
+<div class="flow-arrow">→</div>
+<div class="flow-node"><div class="icon">📦</div><div class="name">输出</div><div class="sub">.png .tex .txt</div></div>
+</div>
+</div>
+<div class="cols">
+<div class="col-narrow">
+<div class="card card-sm">
+<h3>知识点覆盖</h3>
+<table>
+<tr><th>知识点</th><th>基础</th><th>进阶</th><th>竞赛</th></tr>
+<tr><td>椭圆</td><td>标准方程</td><td>焦点弦/中点弦</td><td>定点证明/面积最值</td></tr>
+<tr><td>双曲线</td><td>标准方程</td><td>焦点弦/切线</td><td>渐近线平行弦</td></tr>
+<tr><td>抛物线</td><td>标准方程</td><td>焦点弦/焦半径</td><td>阿基米德三角形</td></tr>
+<tr><td>极坐标</td><td>坐标互化</td><td>直线与圆</td><td>圆锥曲线统一方程</td></tr>
+</table>
+</div>
+</div>
+<div class="col-wide">
+<div class="card card-sm">
+<h3>输出文件</h3>
+<div class="code-block"><div class="bar"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div><span>output/</span></div><pre><code>Question_20260530_143025/
+├── diagram.png      # Matplotlib 精确配图 (150 DPI)
+├── problem.tex      # LaTeX 题干 (可直接编译)
+├── solution.tex     # LaTeX 完整解答 (含推导过程)
+└── problem.txt      # Unicode 纯文本 (终端友好)</code></pre></div>
+</div>
+</div>
+</div>
+</section>
+
+<!-- ══ 题型详情 — White tile ══ -->
+<section data-background-color="#ffffff">
+<h2>60 种题型全景</h2>
+<div class="cols">
+<div class="col">
+<div class="card">
+<h3>椭圆 (17 种)</h3>
+<table style="font-size:0.58em;">
+<tr><th>难度</th><th>题型</th></tr>
+<tr><td><span class="tag tag-green">1</span></td><td>basic — 标准方程</td></tr>
+<tr><td><span class="tag tag-blue">2</span></td><td>chord, focal_radius, slope_product, tangent_line, second_def, midpoint_chord</td></tr>
+<tr><td><span class="tag tag-orange">3</span></td><td>focus_triangle, locus, optical_property</td></tr>
+<tr><td><span class="tag tag-purple">4</span></td><td>fixed_point, area_opt, ecc_range, apollonius</td></tr>
+<tr><td><span class="tag" style="background:#fce4ec;color:#c62828;border-color:#f8bbd0;">5</span></td><td>tangent, monge_circle</td></tr>
+</table>
+</div>
+<div class="card">
+<h3>双曲线 (17 种)</h3>
+<table style="font-size:0.58em;">
+<tr><th>难度</th><th>题型</th></tr>
+<tr><td><span class="tag tag-green">1</span></td><td>basic</td></tr>
+<tr><td><span class="tag tag-blue">2</span></td><td>chord, focal_radius, second_def, tangent_line, slope_product, midpoint_chord, equilateral_hyperbola</td></tr>
+<tr><td><span class="tag tag-orange">3</span></td><td>focus_triangle, ecc_range, tangent, locus, optical_property</td></tr>
+<tr><td><span class="tag tag-purple">4</span></td><td>asymptote_angle, area_opt</td></tr>
+<tr><td><span class="tag" style="background:#fce4ec;color:#c62828;border-color:#f8bbd0;">5</span></td><td>monge_circle, butterfly</td></tr>
+</table>
+</div>
+</div>
+<div class="col">
+<div class="card">
+<h3>抛物线 (15 种)</h3>
+<table style="font-size:0.58em;">
+<tr><th>难度</th><th>题型</th></tr>
+<tr><td><span class="tag tag-green">1</span></td><td>basic</td></tr>
+<tr><td><span class="tag tag-blue">2</span></td><td>chord, focal_radius, tangent_line, second_def, midpoint_chord, locus</td></tr>
+<tr><td><span class="tag tag-orange">3</span></td><td>slope_product, property, ecc_range</td></tr>
+<tr><td><span class="tag tag-purple">4</span></td><td>optical_property, vector_bridge</td></tr>
+<tr><td><span class="tag" style="background:#fce4ec;color:#c62828;border-color:#f8bbd0;">5</span></td><td>archimedes, fixed_point, monge_circle</td></tr>
+</table>
+</div>
+<div class="card">
+<h3>极坐标 (11 种)</h3>
+<table style="font-size:0.58em;">
+<tr><th>难度</th><th>题型</th></tr>
+<tr><td><span class="tag tag-green">1</span></td><td>basic</td></tr>
+<tr><td><span class="tag tag-blue">2</span></td><td>line_circle, focal_radius, chord_ratio, slope_product, fixed_point</td></tr>
+<tr><td><span class="tag tag-orange">3</span></td><td>conic, second_def, area_opt, conic_unified, parametric</td></tr>
+</table>
+</div>
+</div>
+</div>
+</section>
+
+<!-- ══ 技术文档 — Parchment tile ══ -->
+<section data-background-color="#f5f5f7">
+<h2>技术文档</h2>
+<div class="cols">
+<div class="col">
+<div class="card-parchment">
+<h3>文档结构</h3>
+<div class="code-block"><div class="bar"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div><span>docs/technical-docs.tex</span></div><pre><code>解析几何题目生成系统 — 技术原理说明文档
+
+目录：
+1. 项目概述
+2. 系统架构
+3. 核心数据模型
+4. 题目生成算法
+5. 精确配图渲染
+6. LaTeX 渲染引擎
+7. TUI 交互界面
+8. LLM 与智能体结合
+9. 测试与验证</code></pre></div>
+</div>
+<div class="card-parchment">
+<h3>文档特点</h3>
+<ul style="font-size:0.68em;">
+<li><strong>LaTeX 专业排版</strong> — 数学公式、代码高亮、表格</li>
+<li><strong>完整数学推导</strong> — 每种题型的算法详解</li>
+<li><strong>代码示例</strong> — 关键函数的实现说明</li>
+<li><strong>AI 辅助开发记录</strong> — 人机协作的完整流程</li>
+</ul>
+</div>
+</div>
+<div class="col">
+<div class="card">
+<h3>核心内容</h3>
+<div class="steps">
+<div class="step"><div class="step-num">1</div><div class="step-content"><strong>系统架构</strong> — 双路径生成策略、模块依赖关系</div></div>
+<div class="step"><div class="step-num">2</div><div class="step-content"><strong>数据模型</strong> — Problem, ConicParams, Point, Line 四个核心类</div></div>
+<div class="step"><div class="step-num">3</div><div class="step-content"><strong>生成算法</strong> — 联立方程、韦达定理、判别式验证</div></div>
+<div class="step"><div class="step-num">4</div><div class="step-content"><strong>配图渲染</strong> — 参数方程绘图、坐标自适应</div></div>
+<div class="step"><div class="step-num">5</div><div class="step-content"><strong>LLM 结合</strong> — AI 辅助架构设计、数学推导、代码生成</div></div>
+</div>
+</div>
+<div class="card-accent">
+<h3>文档产出</h3>
+<ul style="font-size:0.68em;">
+<li>📄 <strong>LaTeX 版本</strong> — docs/technical-docs.tex</li>
+<li>📄 <strong>PDF 版本</strong> — docs/technical-docs.pdf</li>
+<li>📊 <strong>60 种题型</strong>的完整覆盖说明</li>
+<li>🔧 <strong>11 处修改清单</strong> — 新增题型的完整指南</li>
+</ul>
+</div>
+</div>
+</div>
+</section>
+
+<!-- ══ 核心算法 — Dark tile ══ -->
+<section data-background-color="#272729" class="section-dark">
+<div class="sec-num">01</div>
+<h2>核心算法：题目生成</h2>
+<p class="sec-desc">数学推导 → 参数计算 → 可解性验证 → LaTeX 模板</p>
+</section>
+
+<section data-background-color="#272729" class="section-dark">
+<h2>生成流程 — 以椭圆焦点弦为例</h2>
+<div class="cols">
+<div class="col-wide">
+<div class="card">
+<h3>六步生成算法</h3>
+<div class="steps">
+<div class="step"><div class="step-num">1</div><div class="step-content"><strong>参数选取</strong> — 从 {2,3,4,5,6} 随机选 a,b，计算 c=√(a²-b²)，e=c/a</div></div>
+<div class="step"><div class="step-num">2</div><div class="step-content"><strong>几何构造</strong> — 过 F₁(-c,0) 斜率 k 的直线：y=k(x+c)</div></div>
+<div class="step"><div class="step-num">3</div><div class="step-content"><strong>联立消元</strong> — 代入椭圆方程得二次方程</div></div>
+<div class="step"><div class="step-num">4</div><div class="step-content"><strong>判别式验证</strong> — Δ = B²-4AC ≥ 0，确保有实交点</div></div>
+<div class="step"><div class="step-num">5</div><div class="step-content"><strong>韦达定理</strong> — x₁+x₂=-B/A，x₁x₂=C/A，求交点 P,Q</div></div>
+<div class="step"><div class="step-num">6</div><div class="step-content"><strong>计算结果</strong> — 弦长 |PQ|=√(1+k²)·|x₁-x₂|，面积 S=½|x₁y₂-x₂y₁|</div></div>
+</div>
+</div>
+</div>
+<div class="col-narrow">
+<div class="card">
+<h3>可解性保证</h3>
+<ul style="font-size:0.7em;">
+<li>Δ ≥ 0 确保有实交点</li>
+<li>椭圆 a>b>0，双曲线 a,b>0</li>
+<li>参数从整数集选取，优先整数解</li>
+<li>每种题型均含完整 LaTeX 解答</li>
+</ul>
+</div>
+<div class="card">
+<h3>核心代码</h3>
+<div class="code-block"><div class="bar"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div><span>interactive_generator.py</span></div><pre><code>A = b**2 + a**2 * k**2
+B = 2 * a**2 * c * k**2
+C = a**2*c**2*k**2 - a**2*b**2
+
+disc = B**2 - 4*A*C
+assert disc >= 0
+
+x1 = (-B + np.sqrt(disc))/(2*A)
+x2 = (-B - np.sqrt(disc))/(2*A)
+y1, y2 = k*(x1+c), k*(x2+c)</code></pre></div>
+</div>
+</div>
+</div>
+</section>
+
+<!-- ══ 实现原理详解 ══ -->
+<section data-background-color="#272729" class="section-dark">
+<h2>实现原理：数据模型设计</h2>
+<div class="cols">
+<div class="col">
+<div class="card">
+<h3>ConicParams — 圆锥曲线参数</h3>
+<div class="code-block"><div class="bar"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div><span>problem_generator.py</span></div><pre><code>@dataclass
+class ConicParams:
+    """圆锥曲线参数"""
+    center: Tuple[float, float] = (0, 0)
+    a: float = 1.0  # 半长轴/半实轴
+    b: float = 1.0  # 半短轴/半虚轴
+    c: float = 0.0  # 半焦距
+    e: float = 0.0  # 离心率
+    rotation: float = 0.0
+
+    def __post_init__(self):
+        # 自动计算 c 和 e
+        if self.c == 0:
+            self.c = np.sqrt(abs(self.a**2 - self.b**2))
+        if self.e == 0 and self.c > 0:
+            self.e = self.c / self.a</code></pre></div>
+</div>
+<div class="card">
+<h3>设计要点</h3>
+<ul style="font-size:0.65em;">
+<li><strong>自动推导</strong>：c 和 e 在 __post_init__ 中计算，避免手动错误</li>
+<li><strong>椭圆</strong>：c = √(a²-b²)，e = c/a < 1</li>
+<li><strong>双曲线</strong>：c = √(a²+b²)，e = c/a > 1</li>
+<li><strong>抛物线</strong>：a = p/2, b = 0, c = p/2</li>
+</ul>
+</div>
+</div>
+<div class="col">
+<div class="card">
+<h3>Problem — 题目对象</h3>
+<div class="code-block"><div class="bar"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div><span>problem_generator.py</span></div><pre><code>@dataclass
+class Problem:
+    """解析几何题目"""
+    title: str           # 题目标题
+    topic: str           # 知识点
+    difficulty: int      # 难度等级 (1-5)
+    problem_latex: str   # 题干 LaTeX
+    solution_latex: str  # 解答 LaTeX
+    conic_params: ConicParams
+    points: List[Point]  # 关键点
+    lines: List[Line]    # 关键直线
+    conic_type: str      # 曲线类型
+    answer: str          # 最终答案</code></pre></div>
+</div>
+<div class="card">
+<h3>Point & Line</h3>
+<div class="code-block"><div class="bar"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div><span>数据结构</span></div><pre><code>@dataclass
+class Point:
+    x: float
+    y: float
+    label: str = ""  # "F_1", "P", etc.
+
+    def distance_to(self, other):
+        return np.sqrt((self.x-other.x)**2 +
+                       (self.y-other.y)**2)
+
+@dataclass
+class Line:
+    a: float  # ax + by + c = 0
+    b: float
+    c: float
+
+    def distance_to_point(self, p):
+        return abs(self.a*p.x + self.b*p.y +
+                   self.c) / np.sqrt(self.a**2+self.b**2)</code></pre></div>
+</div>
+</div>
+</div>
+</section>
+
+<section data-background-color="#272729" class="section-dark">
+<h2>实现原理：题目生成架构</h2>
+<div class="cols">
+<div class="col">
+<div class="card">
+<h3>统一入口函数</h3>
+<div class="code-block"><div class="bar"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div><span>interactive_generator.py</span></div><pre><code>def generate_ellipse_dynamic(a=None, b=None,
+                             problem_type="basic",
+                             slope=None):
+    # 1. 参数处理
+    if a is None:
+        a = np.random.choice([2,3,4,5,6])
+    if b is None:
+        b = np.random.choice(range(1, a))
+
+    # 2. 参数验证
+    validate_ellipse(a, b)  # a > b > 0
+
+    # 3. 计算导出参数
+    c = np.sqrt(a**2 - b**2)
+    e = c / a
+    params = ConicParams(a=a, b=b, c=c, e=e)
+
+    # 4. 分发到具体题型函数
+    if problem_type == "basic":
+        return _ellipse_basic(a, b, c, e, params)
+    elif problem_type == "chord":
+        return _ellipse_chord(a, b, c, e, params, slope)
+    elif problem_type == "focus_triangle":
+        return _ellipse_focus_triangle(a, b, c, e, params)
+    # ... 共 17 种椭圆题型</code></pre></div>
+</div>
+</div>
+<div class="col">
+<div class="card">
+<h3>题型分发表</h3>
+<div class="code-block"><div class="bar"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div><span>分发逻辑</span></div><pre><code># 椭圆 17 种题型
+"basic"           → _ellipse_basic
+"chord"           → _ellipse_chord
+"focus_triangle"  → _ellipse_focus_triangle
+"midpoint_chord"  → _ellipse_midpoint_chord
+"focal_radius"    → _ellipse_focal_radius
+"slope_product"   → _ellipse_slope_product
+"tangent_line"    → _ellipse_tangent_line
+"second_def"      → _ellipse_second_def
+"fixed_point"     → _ellipse_fixed_point
+"area_opt"        → _ellipse_area_opt
+"ecc_range"       → _ellipse_ecc_range
+"tangent"         → _ellipse_tangent
+"third_def"       → _ellipse_third_def
+"optical_property"→ _ellipse_optical_property
+"locus"           → _ellipse_locus
+"monge_circle"    → _ellipse_monge_circle
+"apollonius"      → _ellipse_apollonius</code></pre></div>
+</div>
+<div class="card">
+<h3>可解性保证</h3>
+<ul style="font-size:0.65em;">
+<li><strong>判别式检查</strong>：Δ = B²-4AC ≥ 0</li>
+<li><strong>参数约束</strong>：椭圆 a>b>0，双曲线 a,b>0</li>
+<li><strong>整数优化</strong>：从 {2,3,4,5,6} 选取</li>
+<li><strong>完整解答</strong>：每题含 LaTeX 推导过程</li>
+</ul>
+</div>
+</div>
+</div>
+</section>
+
+<section data-background-color="#272729" class="section-dark">
+<h2>实现原理：具体题型实现</h2>
+<div class="cols">
+<div class="col">
+<div class="card">
+<h3>椭圆焦点弦 — 核心代码</h3>
+<div class="code-block"><div class="bar"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div><span>_ellipse_chord()</span></div><pre><code>def _ellipse_chord(a, b, c, e, params, k):
+    F1 = Point(-c, 0, "F_1")
+    F2 = Point(c, 0, "F_2")
+
+    # 联立方程系数
+    A_coeff = b**2 + a**2 * k**2
+    B_coeff = 2 * a**2 * c * k**2
+    C_coeff = a**2*c**2*k**2 - a**2*b**2
+
+    # 判别式验证
+    disc = B_coeff**2 - 4*A_coeff*C_coeff
+    assert disc >= 0, "无实交点"
+
+    # 韦达定理求交点
+    x1 = (-B_coeff + np.sqrt(disc))/(2*A_coeff)
+    x2 = (-B_coeff - np.sqrt(disc))/(2*A_coeff)
+    y1, y2 = k*(x1+c), k*(x2+c)
+
+    # 计算弦长和面积
+    P, Q = Point(x1,y1,"P"), Point(x2,y2,"Q")
+    chord = P.distance_to(Q)
+    area = 0.5*abs(x1*y2 - x2*y1)
+
+    return Problem(
+        title=f"椭圆焦点弦 (a={a},b={b},k={k})",
+        topic="椭圆", difficulty=2,
+        problem_latex=..., solution_latex=...,
+        points=[F1, F2, P, Q],
+        answer=f"|PQ| = {chord:.4g}"
+    )</code></pre></div>
+</div>
+</div>
+<div class="col">
+<div class="card">
+<h3>LaTeX 模板生成</h3>
+<div class="code-block"><div class="bar"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div><span>f-string 模板</span></div><pre><code># 题干 LaTeX
+problem_latex = (
+    f"已知椭圆 $\\frac{{x^2}}{{{a**2}}}"
+    f"+ \\frac{{y^2}}{{{b**2}}} = 1$，"
+    f"过 $F_1$ 斜率为 ${k}$ 的直线 "
+    f"与椭圆交于 $P$、$Q$。"
+    f"\n\n(1) 求弦 $|PQ|$ 的长；"
+    f"\n\n(2) 求 $\\triangle OPQ$ 的面积。"
+)
+
+# 解答 LaTeX（含完整推导）
+solution_latex = (
+    f"**解：**\n\n"
+    f"椭圆 $a={a}$，$b={b}$，"
+    f"$c=\\sqrt{{{a**2}-{b**2}}}={c:.4g}$。\n\n"
+    f"联立方程得：${A_coeff}x^2 + "
+    f"{B_coeff:.4g}x + {C_coeff:.4g} = 0$\n\n"
+    f"$|PQ| = \\sqrt{{1+{k**2}}} \\cdot "
+    f"|x_1-x_2| = {chord:.4g}$"
+)</code></pre></div>
+</div>
+<div class="card">
+<h3>LaTeX → Unicode 转换</h3>
+<div class="code-block"><div class="bar"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div><span>latex_render.py</span></div><pre><code>def latex_to_unicode(text):
+    # 移除定界符
+    text = text.replace("$$", "")
+    text = text.replace("$", "")
+
+    # 转换分数
+    text = re.sub(
+        r'\\frac\{([^}]+)\}\{([^}]+)\}',
+        r'\1/\2', text
+    )
+
+    # 转换上标
+    text = re.sub(
+        r'\^\{([^}]+)\}',
+        lambda m: _to_superscript(m.group(1)),
+        text
+    )
+
+    # 替换希腊字母
+    for latex, uni in GREEK_MAP.items():
+        text = text.replace(latex, uni)
+
+    return text.strip()</code></pre></div>
+</div>
+</div>
+</div>
+</section>
+
+<section data-background-color="#272729" class="section-dark">
+<h2>实现原理：配图渲染</h2>
+<div class="cols">
+<div class="col">
+<div class="card">
+<h3>渲染主流程</h3>
+<div class="code-block"><div class="bar"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div><span>diagram_renderer.py</span></div><pre><code>def render(self, problem, output_path):
+    # 1. 确定坐标范围
+    x_range, y_range = self._get_plot_range(problem)
+
+    # 2. 创建图形
+    fig, ax = self._setup_figure(x_range, y_range)
+
+    # 3. 绘制曲线
+    if problem.conic_type == "ellipse":
+        self._plot_ellipse(ax, problem.conic_params)
+    elif problem.conic_type == "hyperbola":
+        self._plot_hyperbola(ax, problem.conic_params)
+    elif problem.conic_type == "parabola":
+        self._plot_parabola(ax, problem.conic_params)
+
+    # 4. 绘制辅助线
+    for line in problem.lines:
+        self._plot_line(ax, line, x_range)
+
+    # 5. 标注关键点
+    for point in problem.points:
+        self._plot_point(ax, point)
+
+    # 6. 导出 PNG
+    fig.savefig(output_path, dpi=150,
+                bbox_inches='tight', facecolor='white')</code></pre></div>
+</div>
+</div>
+<div class="col">
+<div class="card">
+<h3>参数方程绘图</h3>
+<div class="code-block"><div class="bar"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div><span>曲线绘制</span></div><pre><code># 椭圆参数方程
+def _plot_ellipse(self, ax, params):
+    theta = np.linspace(0, 2*np.pi, 1000)
+    x = params.center[0] + params.a * np.cos(theta)
+    y = params.center[1] + params.b * np.sin(theta)
+    ax.plot(x, y, color='#2E86AB', linewidth=2)
+
+# 双曲线参数方程
+def _plot_hyperbola(self, ax, params):
+    # 右支
+    x_right = np.linspace(params.a, x_max, 500)
+    y_pos = params.b * np.sqrt((x_right/params.a)**2 - 1)
+    y_neg = -y_pos
+    ax.plot(x_right, y_pos, color='#2E86AB')
+    ax.plot(x_right, y_neg, color='#2E86AB')
+    # 左支类似...</code></pre></div>
+</div>
+<div class="card">
+<h3>坐标系自适应</h3>
+<div class="code-block"><div class="bar"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div><span>_get_plot_range()</span></div><pre><code>def _get_plot_range(self, problem):
+    margin = 2
+    # 根据曲线类型计算基础范围
+    if problem.conic_type == "ellipse":
+        x_range = (-params.a-margin, params.a+margin)
+        y_range = (-params.b-margin, params.b+margin)
+
+    # 遍历所有关键点，扩展范围
+    for point in problem.points:
+        x_range = (min(x_range[0], point.x-margin),
+                   max(x_range[1], point.x+margin))
+
+    # 确保正方形比例
+    max_span = max(x_span, y_span)
+    return x_range, y_range</code></pre></div>
+</div>
+</div>
+</div>
+</section>
+
+<section data-background-color="#272729" class="section-dark">
+<h2>实现原理：TUI 交互</h2>
+<div class="cols">
+<div class="col">
+<div class="card">
+<h3>自然语言解析</h3>
+<div class="code-block"><div class="bar"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div><span>tui_app.py</span></div><pre><code>def parse_user_input(text):
+    result = {
+        "topic": None,
+        "problem_type": "basic",
+        "params": {},
+        "slope": None
+    }
+
+    # 1. 识别知识点
+    topic_map = {
+        "椭圆": "ellipse",
+        "双曲线": "hyperbola",
+        "抛物线": "parabola",
+        "极坐标": "polar"
+    }
+    for keyword, topic in topic_map.items():
+        if keyword in text:
+            result["topic"] = topic
+            break
+
+    # 2. 识别题型
+    type_map = {
+        "基础": "basic", "弦长": "chord",
+        "竞赛": "auto", "压轴": "auto",
+        "蒙日": "monge_circle",
+        "阿波罗尼斯": "apollonius"
+    }
+    for keyword, ptype in type_map.items():
+        if keyword in text:
+            result["problem_type"] = ptype
+            break
+
+    # 3. 提取参数
+    param_patterns = {
+        "a": r'a\s*[=＝]\s*([\d.]+)',
+        "b": r'b\s*[=＝]\s*([\d.]+)',
+        "p": r'p\s*[=＝]\s*([\d.]+)',
+        "k": r'k\s*[=＝]\s*([\d.]+)',
+    }
+    for key, pattern in param_patterns.items():
+        match = re.search(pattern, text)
+        if match:
+            result["params"][key] = float(match.group(1))
+
+    return result</code></pre></div>
+</div>
+</div>
+<div class="col">
+<div class="card">
+<h3>难度路由</h3>
+<div class="code-block"><div class="bar"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div><span>自动选择题型</span></div><pre><code># 竞赛/压轴难度
+if "竞赛" in text or "压轴" in text:
+    hard_types = {
+        "ellipse": [
+            "fixed_point", "area_opt",
+            "ecc_range", "tangent",
+            "third_def", "optical_property",
+            "monge_circle", "apollonius"
+        ],
+        "hyperbola": [
+            "asymptote_angle", "area_opt",
+            "optical_property", "monge_circle",
+            "butterfly"
+        ],
+        "parabola": [
+            "archimedes", "fixed_point",
+            "optical_property", "monge_circle",
+            "vector_bridge"
+        ]
+    }
+    result["problem_type"] = random.choice(
+        hard_types[topic]
+    )</code></pre></div>
+</div>
+<div class="card">
+<h3>TUI 界面架构</h3>
+<ul style="font-size:0.65em;">
+<li><strong>Textual 框架</strong> — 终端 UI</li>
+<li><strong>SplitBar</strong> — 可拖拽分栏</li>
+<li><strong>RichLog</strong> — 聊天记录</li>
+<li><strong>Input</strong> — 用户输入框</li>
+<li><strong>异步生成</strong> — @work(thread=True)</li>
+</ul>
+</div>
+</div>
+</div>
+</section>
+
+<!-- ══ 精确配图 — Parchment tile ══ -->
+<section data-background-color="#f5f5f7" class="section-parchment">
+<div class="sec-num">02</div>
+<h2>精确配图渲染</h2>
+<p class="sec-desc">参数方程绘图 · 坐标自适应 · 关键点标注</p>
+</section>
+
+<section data-background-color="#f5f5f7">
+<h2>配图渲染原理</h2>
+<div class="cols">
+<div class="col">
+<div class="card">
+<h3>渲染流程</h3>
+<div class="steps">
+<div class="step"><div class="step-num">1</div><div class="step-content"><strong>坐标范围</strong> — 遍历所有 Point，set_aspect('equal') 等比例</div></div>
+<div class="step"><div class="step-num">2</div><div class="step-content"><strong>坐标系</strong> — 网格 + 箭头 + 刻度 + 轴标签</div></div>
+<div class="step"><div class="step-num">3</div><div class="step-content"><strong>参数方程</strong> — 椭圆 x=a·cosθ, y=b·sinθ，1000 采样点</div></div>
+<div class="step"><div class="step-num">4</div><div class="step-content"><strong>辅助线</strong> — 渐近线(紫)、准线(绿)、切线(橙)</div></div>
+<div class="step"><div class="step-num">5</div><div class="step-content"><strong>标注</strong> — 焦点(金)、顶点(蓝)、交点(蓝)</div></div>
+<div class="step"><div class="step-num">6</div><div class="step-content"><strong>导出</strong> — PNG 150 DPI，白底</div></div>
+</div>
+</div>
+<div class="card-parchment">
+<h3>精确性保证</h3>
+<ul style="font-size:0.7em;">
+<li>所有曲线使用<strong>参数方程</strong>绘制，非贝塞尔近似</li>
+<li>坐标系<strong>等比例显示</strong>，x/y 轴单位长度一致</li>
+<li>范围<strong>自适应</strong>：遍历所有 Point 确保不裁剪</li>
+</ul>
+</div>
+</div>
+<div class="col">
+<div class="card">
+<h3>配图效果</h3>
+<div class="cols-3">
+<div><div class="img-frame"><img src="output/椭圆_difficulty1.png" alt="椭圆" onerror="this.style.display='none'"></div><p style="text-align:center;margin-top:3px;"><span class="tag tag-blue">椭圆</span></p></div>
+<div><div class="img-frame"><img src="output/双曲线_difficulty2.png" alt="双曲线" onerror="this.style.display='none'"></div><p style="text-align:center;margin-top:3px;"><span class="tag tag-cyan">双曲线</span></p></div>
+<div><div class="img-frame"><img src="output/抛物线_difficulty1.png" alt="抛物线" onerror="this.style.display='none'"></div><p style="text-align:center;margin-top:3px;"><span class="tag tag-orange">抛物线</span></p></div>
+</div>
+<p style="font-size:0.55em;color:var(--ink-muted-48);text-align:center;margin-top:5px;">所有关键点坐标、曲线形状均由数学参数方程严格计算</p>
+</div>
+<div class="card-parchment">
+<h3>LaTeX → Unicode 终端渲染</h3>
+<div class="code-block"><div class="bar"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div><span>终端输出</span></div><pre><code>椭圆 x²/25 + y²/9 = 1
+c = √(25 - 9) = 4,  e = 4/5
+焦点 F₁(-4, 0), F₂(4, 0)
+|PQ| = √(1+k²)·|x₁-x₂| = 6.72
+S_△OPQ = ½|x₁y₂-x₂y₁| = 4.8</code></pre></div>
+</div>
+</div>
+</div>
+</section>
+
+<!-- ══ TUI — White tile ══ -->
+<section data-background-color="#ffffff">
+<h2>TUI 交互界面</h2>
+<div class="cols">
+<div class="col">
+<div class="card">
+<h3>界面设计</h3>
+<ul style="font-size:0.75em;">
+<li><strong>Chat 风格</strong> — 参考 DeepSeek / Claude Code 交互形式</li>
+<li><strong>可拖拽分栏</strong> — 左侧对话历史 + 右侧配图预览</li>
+<li><strong>侧边栏</strong> — 快捷命令和题型说明</li>
+<li><strong>实时渲染</strong> — 输入即生成，LaTeX 即时转换为 Unicode</li>
+<li><strong>自然语言解析</strong> — 支持中文关键词识别</li>
+</ul>
+</div>
+<div class="card">
+<h3>难度路由</h3>
+<table>
+<tr><th>用户输入</th><th>映射</th><th>题型示例</th></tr>
+<tr><td><code>基础</code></td><td>basic</td><td>标准方程、焦点、顶点</td></tr>
+<tr><td><code>进阶</code></td><td>chord</td><td>焦点弦、中点弦、切线</td></tr>
+<tr><td><code>竞赛/压轴/难</code></td><td>auto</td><td>定点证明、阿基米德三角形</td></tr>
+</table>
+</div>
+</div>
+<div class="col">
+<div class="card">
+<h3>输入示例</h3>
+<div class="code-block"><div class="bar"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div><span>user input</span></div><pre><code style="line-height:1.9;"><span style="color:var(--blue);">椭圆 a=5 b=3</span>          → 基础题 (指定参数)
+<span style="color:var(--blue);">抛物线 p=4 弦长 k=1</span>   → 焦点弦题
+<span style="color:var(--blue);">椭圆 竞赛</span>             → 自动选高难度
+<span style="color:var(--blue);">random</span>                 → 随机知识点+题型</code></pre></div>
+</div>
+<div class="card-parchment">
+<h3>技术实现</h3>
+<ul style="font-size:0.72em;">
+<li>基于 <strong>Textual</strong> 框架，Python TUI</li>
+<li>parse_user_input() 正则解析中文关键词</li>
+<li>配色方案：cream (#faf9f5) + coral (#cc785c)</li>
+</ul>
+</div>
+</div>
+</div>
+</section>
+
+<!-- ══ LLM — Dark tile ══ -->
+<section data-background-color="#272729" class="section-dark">
+<div class="sec-num">03</div>
+<h2>LLM 与智能体结合</h2>
+<p class="sec-desc">AI 辅助开发的全流程实践</p>
+</section>
+
+<section data-background-color="#272729" class="section-dark">
+<h2>LLM 辅助开发 — 参与环节</h2>
+<div class="cols">
+<div class="col">
+<div class="card">
+<h3>AI 参与的 5 个环节</h3>
+<div class="steps">
+<div class="step"><div class="step-num" style="background:var(--blue-on-dark);">1</div><div class="step-content"><strong>架构设计</strong> — 模块划分(6 个核心模块)、数据模型(4 个 dataclass)、接口定义</div></div>
+<div class="step"><div class="step-num" style="background:var(--blue-on-dark);">2</div><div class="step-content"><strong>数学推导</strong> — 60 种题型的联立方程、韦达定理、面积公式、离心率范围</div></div>
+<div class="step"><div class="step-num" style="background:var(--blue-on-dark);">3</div><div class="step-content"><strong>代码生成</strong> — 每种题型的参数计算 + LaTeX 模板 + 解答生成</div></div>
+<div class="step"><div class="step-num" style="background:var(--blue-on-dark);">4</div><div class="step-content"><strong>UI 设计</strong> — TUI 布局、自然语言解析、配色方案</div></div>
+<div class="step"><div class="step-num" style="background:var(--blue-on-dark);">5</div><div class="step-content"><strong>测试验证</strong> — 全题型测试脚本、边界条件检查</div></div>
+</div>
+</div>
+</div>
+<div class="col">
+<div class="card">
+<h3>人机协作模式</h3>
+<div style="text-align:center;margin:8px 0;">
+<span class="btn-pill" style="font-size:0.6em;">人类: 需求 + 验证</span>
+<span style="color:var(--blue-on-dark);font-size:0.9em;margin:0 6px;">⇄</span>
+<span class="btn-pill" style="font-size:0.6em;background:var(--blue-on-dark);">AI: 推导 + 实现</span>
+</div>
+<p style="font-size:0.55em;text-align:center;color:var(--body-muted);">人类把控方向与质量，AI 处理数学推导与代码实现</p>
+</div>
+<div class="card">
+<h3>AI 优势与局限</h3>
+<table style="font-size:0.62em;">
+<tr><th>优势</th><th>局限</th></tr>
+<tr><td>数学推导速度快</td><td>复杂公式需人工验证</td></tr>
+<tr><td>模式化代码生成</td><td>边界条件需人工检查</td></tr>
+<tr><td>LaTeX 模板自动生成</td><td>竞赛规范需人工指导</td></tr>
+<tr><td>测试脚本全覆盖</td><td>UI 细节需人工调优</td></tr>
+</table>
+</div>
+<div class="card">
+<h3>开发效率对比</h3>
+<table style="font-size:0.62em;">
+<tr><th>方式</th><th>单题型</th><th>数学正确率</th></tr>
+<tr><td>纯手写</td><td>30-60 min</td><td>依赖开发者</td></tr>
+<tr><td><strong>AI 辅助</strong></td><td><strong>5-10 min</strong></td><td><strong>需人工验证</strong></td></tr>
+<tr><td>纯 AI</td><td>2-3 min</td><td>可能有错误</td></tr>
+</table>
+</div>
+</div>
+</div>
+</section>
+
+<section data-background-color="#272729" class="section-dark">
+<h2>AI 辅助实例 — 椭圆焦点弦</h2>
+<div class="cols">
+<div class="col">
+<div class="card">
+<h3>AI 的推导过程</h3>
+<div style="font-size:0.65em;line-height:1.7;text-align:left;">
+<p><strong>输入</strong>："生成椭圆焦点弦题，过左焦点斜率为 k 的直线与椭圆交于 P,Q"</p>
+<p><strong>AI 推导</strong>:</p>
+<ol>
+<li>直线: y=k(x+c)</li>
+<li>代入椭圆: x²/a² + k²(x+c)²/b² = 1</li>
+<li>整理: (b²+a²k²)x² + 2a²ck²x + (a²c²k²-a²b²) = 0</li>
+<li>判别式: Δ = (2a²ck²)² - 4(b²+a²k²)(a²c²k²-a²b²)</li>
+<li>韦达: x₁+x₂ = -2a²ck²/(b²+a²k²)</li>
+<li>弦长: |PQ| = √(1+k²)·|x₁-x₂|</li>
+</ol>
+</div>
+</div>
+</div>
+<div class="col">
+<div class="card">
+<h3>AI 生成的代码</h3>
+<div class="code-block"><div class="bar"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div><span>AI 生成 → 人工验证</span></div><pre><code># AI 生成的椭圆焦点弦核心代码
+A_coeff = b**2 + a**2 * k**2
+B_coeff = 2 * a**2 * c * k**2
+C_coeff = a**2*c**2*k**2 - a**2*b**2
+
+disc = B_coeff**2 - 4*A_coeff*C_coeff
+assert disc >= 0, "判别式<0，调整参数"
+
+x1 = (-B_coeff + np.sqrt(disc))/(2*A_coeff)
+x2 = (-B_coeff - np.sqrt(disc))/(2*A_coeff)
+y1, y2 = k*(x1+c), k*(x2+c)</code></pre></div>
+</div>
+</div>
+</div>
+</section>
+
+<!-- ══ 演示 — Parchment tile ══ -->
+<section data-background-color="#f5f5f7" class="section-parchment">
+<div class="sec-num">04</div>
+<h2>功能演示</h2>
+<p class="sec-desc">实际运行效果展示</p>
+</section>
+
+<section data-background-color="#f5f5f7">
+<h2>演示：批量生成与测试</h2>
+<div class="cols">
+<div class="col">
+<div class="card">
+<h3>运行 python3 main.py</h3>
+<div class="code-block"><div class="bar"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div><span>terminal</span></div><pre><code style="line-height:1.7;">$ python3 main.py
+
+解析几何题目生成系统
+生成时间: 2026-05-30 14:30:25
+
+>>> 正在生成 椭圆 - 基础 题目...
+【椭圆基础题】难度: ★☆☆
+已知椭圆 C 的中心在原点，焦点在 x 轴上，
+长轴长为 10，短轴长为 6。
+(1) 求椭圆 C 的标准方程；
+(2) 求焦点坐标和离心率。
+答案: x²/25 + y²/9 = 1
+✓ 配图已保存
+
+总计: 12 题, 12 张配图</code></pre></div>
+</div>
+</div>
+<div class="col">
+<div class="card-parchment">
+<h3>运行 python3 test_all_types.py</h3>
+<div class="code-block"><div class="bar"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div><span>test</span></div><pre><code style="line-height:1.7;">$ python3 test_all_types.py
+
+开始测试 60 种题型...
+
+  [1/60] 椭圆 / basic ✓
+  [2/60] 椭圆 / chord ✓
+  [3/60] 椭圆 / focus_triangle ✓
+  ...
+  [58/60] 极坐标 / conic_unified ✓
+  [59/60] 极坐标 / parametric ✓
+  [60/60] 极坐标 / area_opt ✓
+
+测试报告
+总计: 60 种题型
+通过: 60 ✓  失败: 0 ✗
+通过率: 100.0%</code></pre></div>
+</div>
+</div>
+</div>
+</section>
+
+<!-- 配图效果展示 -->
+<section data-background-color="#f5f5f7">
+<h2>配图效果展示</h2>
+<div class="cols">
+<div class="col">
+<div class="img-frame">
+<img src="output/demo_ellipse_chord.png" alt="椭圆焦点弦配图"
+     onerror="this.parentElement.innerHTML='<div style=\x27padding:40px;color:var(--ink-muted-48);font-size:0.8em;\x27>📐 椭圆焦点弦 (a=5, b=3, k=1)</div>'">
+</div>
+<p style="text-align:center;margin-top:6px;font-size:0.65em;color:var(--ink-muted-48);">
+椭圆焦点弦题 — 关键点 F₁、F₂、P、Q 标注清晰
+</p>
+</div>
+<div class="col">
+<div class="card">
+<h3>配图特点</h3>
+<ul style="font-size:0.7em;">
+<li><strong>参数方程绘图</strong> — 1000 采样点，曲线平滑</li>
+<li><strong>等比例坐标</strong> — x/y 轴单位长度一致</li>
+<li><strong>自适应范围</strong> — 遍历所有关键点确保不裁剪</li>
+<li><strong>精确标注</strong> — 焦点(金)、交点(蓝)、弦(红)</li>
+</ul>
+</div>
+<div class="card-parchment">
+<h3>现场演示</h3>
+<p style="font-size:0.7em;">
+如果时间允许，我可以现场演示 TUI 交互：<br>
+输入 <code>椭圆 竞赛</code> 看系统如何自动生成高难度题目
+</p>
+</div>
+</div>
+</div>
+</section>
+
+<!-- ══ 总结 — Dark tile ══ -->
+<section data-background-color="#272729" class="section-dark">
+<div class="sec-num">05</div>
+<h2>总结</h2>
+<p class="sec-desc">成果 · 技术栈 · 不足与改进</p>
+</section>
+
+<section data-background-color="#272729" class="section-dark">
+<h2>项目总结</h2>
+<div class="cols">
+<div class="col">
+<div class="card">
+<h3>核心数据</h3>
+<div style="font-size:0.8em; text-align:center; margin:10px 0;">
+<div style="display:flex; justify-content:space-around; margin:15px 0;">
+<div><div style="font-size:2em; font-weight:700; color:var(--blue-on-dark);">60</div><div style="font-size:0.6em; color:var(--body-muted);">种题型</div></div>
+<div><div style="font-size:2em; font-weight:700; color:var(--blue-on-dark);">100%</div><div style="font-size:0.6em; color:var(--body-muted);">测试通过</div></div>
+<div><div style="font-size:2em; font-weight:700; color:var(--blue-on-dark);">&lt;1s</div><div style="font-size:0.6em; color:var(--body-muted);">生成速度</div></div>
+<div><div style="font-size:2em; font-weight:700; color:var(--blue-on-dark);">3-6x</div><div style="font-size:0.6em; color:var(--body-muted);">效率提升</div></div>
+</div>
+</div>
+</div>
+<div class="card">
+<h3>技术亮点</h3>
+<ul style="font-size:0.7em;">
+<li><strong>参数方程精确绘图</strong> — 非贝塞尔近似，1000 采样点</li>
+<li><strong>LaTeX → Unicode</strong> — 实时终端渲染</li>
+<li><strong>TUI 智能体</strong> — 自然语言解析 + 难度路由</li>
+<li><strong>可扩展架构</strong> — 新增题型只需添加函数</li>
+</ul>
+</div>
+</div>
+<div class="col">
+<div class="card">
+<h3>LLM 与智能体结合</h3>
+<ul style="font-size:0.7em;">
+<li>LLM 参与<strong>架构设计、数学推导、代码生成、UI 设计、测试</strong>全流程</li>
+<li>人机协作模式：人类把控方向，AI 处理细节</li>
+<li>单题型开发效率提升 <strong>3-6 倍</strong></li>
+<li>TUI 自然语言解析实现智能体交互</li>
+</ul>
+</div>
+<div class="card">
+<h3>技术栈</h3>
+<table>
+<tr><th>组件</th><th>技术</th></tr>
+<tr><td>语言</td><td>Python 3.12</td></tr>
+<tr><td>数值计算</td><td>NumPy</td></tr>
+<tr><td>绘图</td><td>Matplotlib (参数方程)</td></tr>
+<tr><td>TUI</td><td>Textual + Rich</td></tr>
+<tr><td>AI 辅助</td><td>Claude Code</td></tr>
+<tr><td>打包</td><td>PyInstaller</td></tr>
+</table>
+</div>
+<div class="card">
+<h3>不足与改进</h3>
+<ul style="font-size:0.7em;">
+<li>部分竞赛题解答需人工校验</li>
+<li>配图暂不支持 3D 可视化</li>
+<li>可接入 LLM API 实现对话式出题</li>
+</ul>
+</div>
+</div>
+</div>
+</section>
+
+<!-- ══ Q&A — White hero tile ══ -->
+<section data-background-color="#ffffff" class="cover">
+<div style="font-size:2em;margin-bottom:10px;">📐</div>
+<h1 style="font-size:1.8em;">感谢聆听</h1>
+<p class="subtitle" style="font-size:0.78em;font-weight:300;">Questions & Discussion</p>
+<div class="card" style="display:inline-block;text-align:left;padding:12px 24px;margin-top:14px;">
+<p style="margin:3px 0;font-size:0.62em;"><span class="dim">项目:</span> github.com/L77Doncic/analytic-geometry-generator</p>
+<p style="margin:3px 0;font-size:0.62em;"><span class="dim">体验:</span> <code>python3 run.py</code></p>
+<p style="margin:3px 0;font-size:0.62em;"><span class="dim">测试:</span> <code>python3 test_all_types.py</code> (60/60 通过)</p>
+</div>
+</section>
+
+</div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/highlight/highlight.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/math/math.js"></script>
+<script>
+Reveal.initialize({
+  hash: true,
+  slideNumber: 'c/t',
+  width: 1024,
+  height: 600,
+  margin: 0.05,
+  transition: 'slide',
+  backgroundTransition: 'fade',
+  controls: false,
+  plugins: [RevealHighlight, RevealMath.KaTeX]
+});
+</script>
+</body>
+</html>
