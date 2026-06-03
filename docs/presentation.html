@@ -623,17 +623,17 @@
 </div>
 </section>
 
-<!-- ══ 系统总览 — White tile ══ -->
+<!-- ══ 系统总览 + 题型全景 — White tile ══ -->
 <section data-background-color="#ffffff">
 <h2>系统总览</h2>
-<div class="cols" style="margin-bottom:10px;">
+<div class="cols" style="margin-bottom:8px;">
 <div class="col"><div class="stat"><div class="num">4</div><div class="label">知识点</div></div></div>
 <div class="col"><div class="stat"><div class="num">60+</div><div class="label">题型</div></div></div>
 <div class="col"><div class="stat"><div class="num">1000</div><div class="label">采样点</div></div></div>
 <div class="col"><div class="stat"><div class="num">&lt;1s</div><div class="label">生成速度</div></div></div>
 <div class="col"><div class="stat"><div class="num">100%</div><div class="label">测试通过</div></div></div>
 </div>
-<div class="card" style="text-align:center;padding:12px;">
+<div class="card" style="text-align:center;padding:8px;margin-bottom:8px;">
 <div class="flow">
 <div class="flow-node"><div class="icon">👤</div><div class="name">用户输入</div><div class="sub">"椭圆 a=5 b=3"</div></div>
 <div class="flow-arrow">→</div>
@@ -647,133 +647,40 @@
 </div>
 </div>
 <div class="cols">
-<div class="col-narrow">
-<div class="card card-sm">
-<h3>知识点覆盖</h3>
-<table>
-<tr><th>知识点</th><th>基础</th><th>进阶</th><th>竞赛</th></tr>
-<tr><td>椭圆</td><td>标准方程</td><td>焦点弦/中点弦</td><td>定点证明/面积最值</td></tr>
-<tr><td>双曲线</td><td>标准方程</td><td>焦点弦/切线</td><td>渐近线平行弦</td></tr>
-<tr><td>抛物线</td><td>标准方程</td><td>焦点弦/焦半径</td><td>阿基米德三角形</td></tr>
-<tr><td>极坐标</td><td>坐标互化</td><td>直线与圆</td><td>圆锥曲线统一方程</td></tr>
-</table>
-</div>
-</div>
-<div class="col-wide">
-<div class="card card-sm">
-<h3>输出文件</h3>
-<div class="code-block"><div class="bar"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div><span>output/</span></div><pre><code>Question_20260530_143025/
-├── diagram.png      # Matplotlib 精确配图 (150 DPI)
-├── problem.tex      # LaTeX 题干 (可直接编译)
-├── solution.tex     # LaTeX 完整解答 (含推导过程)
-└── problem.txt      # Unicode 纯文本 (终端友好)</code></pre></div>
-</div>
-</div>
-</div>
-</section>
-
-<!-- ══ 题型详情 — White tile ══ -->
-<section data-background-color="#ffffff">
-<h2>60 种题型全景</h2>
-<div class="cols">
 <div class="col">
-<div class="card">
+<div class="card card-sm">
 <h3>椭圆 (17 种)</h3>
-<table style="font-size:0.58em;">
-<tr><th>难度</th><th>题型</th></tr>
-<tr><td><span class="tag tag-green">1</span></td><td>basic — 标准方程</td></tr>
-<tr><td><span class="tag tag-blue">2</span></td><td>chord, focal_radius, slope_product, tangent_line, second_def, midpoint_chord</td></tr>
-<tr><td><span class="tag tag-orange">3</span></td><td>focus_triangle, locus, optical_property</td></tr>
-<tr><td><span class="tag tag-purple">4</span></td><td>fixed_point, area_opt, ecc_range, apollonius</td></tr>
-<tr><td><span class="tag" style="background:#fce4ec;color:#c62828;border-color:#f8bbd0;">5</span></td><td>tangent, monge_circle</td></tr>
+<table style="font-size:0.55em;">
+<tr><td><span class="tag tag-green">基础</span></td><td>标准方程</td></tr>
+<tr><td><span class="tag tag-blue">进阶</span></td><td>焦点弦、中点弦、切线、焦半径</td></tr>
+<tr><td><span class="tag tag-orange">竞赛</span></td><td>定点证明、面积最值、蒙日圆</td></tr>
 </table>
 </div>
-<div class="card">
+<div class="card card-sm">
 <h3>双曲线 (17 种)</h3>
-<table style="font-size:0.58em;">
-<tr><th>难度</th><th>题型</th></tr>
-<tr><td><span class="tag tag-green">1</span></td><td>basic</td></tr>
-<tr><td><span class="tag tag-blue">2</span></td><td>chord, focal_radius, second_def, tangent_line, slope_product, midpoint_chord, equilateral_hyperbola</td></tr>
-<tr><td><span class="tag tag-orange">3</span></td><td>focus_triangle, ecc_range, tangent, locus, optical_property</td></tr>
-<tr><td><span class="tag tag-purple">4</span></td><td>asymptote_angle, area_opt</td></tr>
-<tr><td><span class="tag" style="background:#fce4ec;color:#c62828;border-color:#f8bbd0;">5</span></td><td>monge_circle, butterfly</td></tr>
+<table style="font-size:0.55em;">
+<tr><td><span class="tag tag-green">基础</span></td><td>标准方程</td></tr>
+<tr><td><span class="tag tag-blue">进阶</span></td><td>焦点弦、渐近线、切线</td></tr>
+<tr><td><span class="tag tag-orange">竞赛</span></td><td>蝴蝶定理、蒙日圆</td></tr>
 </table>
 </div>
 </div>
 <div class="col">
-<div class="card">
+<div class="card card-sm">
 <h3>抛物线 (15 种)</h3>
-<table style="font-size:0.58em;">
-<tr><th>难度</th><th>题型</th></tr>
-<tr><td><span class="tag tag-green">1</span></td><td>basic</td></tr>
-<tr><td><span class="tag tag-blue">2</span></td><td>chord, focal_radius, tangent_line, second_def, midpoint_chord, locus</td></tr>
-<tr><td><span class="tag tag-orange">3</span></td><td>slope_product, property, ecc_range</td></tr>
-<tr><td><span class="tag tag-purple">4</span></td><td>optical_property, vector_bridge</td></tr>
-<tr><td><span class="tag" style="background:#fce4ec;color:#c62828;border-color:#f8bbd0;">5</span></td><td>archimedes, fixed_point, monge_circle</td></tr>
+<table style="font-size:0.55em;">
+<tr><td><span class="tag tag-green">基础</span></td><td>标准方程</td></tr>
+<tr><td><span class="tag tag-blue">进阶</span></td><td>焦点弦、中点弦、焦半径</td></tr>
+<tr><td><span class="tag tag-orange">竞赛</span></td><td>阿基米德三角形、定点证明</td></tr>
 </table>
 </div>
-<div class="card">
+<div class="card card-sm">
 <h3>极坐标 (11 种)</h3>
-<table style="font-size:0.58em;">
-<tr><th>难度</th><th>题型</th></tr>
-<tr><td><span class="tag tag-green">1</span></td><td>basic</td></tr>
-<tr><td><span class="tag tag-blue">2</span></td><td>line_circle, focal_radius, chord_ratio, slope_product, fixed_point</td></tr>
-<tr><td><span class="tag tag-orange">3</span></td><td>conic, second_def, area_opt, conic_unified, parametric</td></tr>
+<table style="font-size:0.55em;">
+<tr><td><span class="tag tag-green">基础</span></td><td>坐标互化</td></tr>
+<tr><td><span class="tag tag-blue">进阶</span></td><td>直线与圆、焦半径</td></tr>
+<tr><td><span class="tag tag-orange">竞赛</span></td><td>圆锥曲线统一方程</td></tr>
 </table>
-</div>
-</div>
-</div>
-</section>
-
-<!-- ══ 技术文档 — Parchment tile ══ -->
-<section data-background-color="#f5f5f7">
-<h2>技术文档</h2>
-<div class="cols">
-<div class="col">
-<div class="card-parchment">
-<h3>文档结构</h3>
-<div class="code-block"><div class="bar"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div><span>docs/technical-docs.tex</span></div><pre><code>解析几何题目生成系统 — 技术原理说明文档
-
-目录：
-1. 项目概述
-2. 系统架构
-3. 核心数据模型
-4. 题目生成算法
-5. 精确配图渲染
-6. LaTeX 渲染引擎
-7. TUI 交互界面
-8. LLM 与智能体结合
-9. 测试与验证</code></pre></div>
-</div>
-<div class="card-parchment">
-<h3>文档特点</h3>
-<ul style="font-size:0.68em;">
-<li><strong>LaTeX 专业排版</strong> — 数学公式、代码高亮、表格</li>
-<li><strong>完整数学推导</strong> — 每种题型的算法详解</li>
-<li><strong>代码示例</strong> — 关键函数的实现说明</li>
-<li><strong>AI 辅助开发记录</strong> — 人机协作的完整流程</li>
-</ul>
-</div>
-</div>
-<div class="col">
-<div class="card">
-<h3>核心内容</h3>
-<div class="steps">
-<div class="step"><div class="step-num">1</div><div class="step-content"><strong>系统架构</strong> — 双路径生成策略、模块依赖关系</div></div>
-<div class="step"><div class="step-num">2</div><div class="step-content"><strong>数据模型</strong> — Problem, ConicParams, Point, Line 四个核心类</div></div>
-<div class="step"><div class="step-num">3</div><div class="step-content"><strong>生成算法</strong> — 联立方程、韦达定理、判别式验证</div></div>
-<div class="step"><div class="step-num">4</div><div class="step-content"><strong>配图渲染</strong> — 参数方程绘图、坐标自适应</div></div>
-<div class="step"><div class="step-num">5</div><div class="step-content"><strong>LLM 结合</strong> — AI 辅助架构设计、数学推导、代码生成</div></div>
-</div>
-</div>
-<div class="card-accent">
-<h3>文档产出</h3>
-<ul style="font-size:0.68em;">
-<li>📄 <strong>LaTeX 版本</strong> — docs/technical-docs.tex</li>
-<li>📄 <strong>PDF 版本</strong> — docs/technical-docs.pdf</li>
-<li>📊 <strong>60 种题型</strong>的完整覆盖说明</li>
-<li>🔧 <strong>11 处修改清单</strong> — 新增题型的完整指南</li>
-</ul>
 </div>
 </div>
 </div>
@@ -1237,12 +1144,6 @@ if "竞赛" in text or "压轴" in text:
 </section>
 
 <!-- ══ 精确配图 — Parchment tile ══ -->
-<section data-background-color="#f5f5f7" class="section-parchment">
-<div class="sec-num">02</div>
-<h2>精确配图渲染</h2>
-<p class="sec-desc">参数方程绘图 · 坐标自适应 · 关键点标注</p>
-</section>
-
 <section data-background-color="#f5f5f7">
 <h2>配图渲染原理</h2>
 <div class="cols">
@@ -1301,7 +1202,7 @@ S_△OPQ = ½|x₁y₂-x₂y₁| = 4.8</code></pre></div>
 <li><strong>可拖拽分栏</strong> — 左侧对话历史 + 右侧配图预览</li>
 <li><strong>侧边栏</strong> — 快捷命令和题型说明</li>
 <li><strong>实时渲染</strong> — 输入即生成，LaTeX 即时转换为 Unicode</li>
-<li><strong>自然语言解析</strong> — 支持中文关键词识别</li>
+<li><strong>自然语言解析</strong> — 基于规则的中文关键词识别</li>
 </ul>
 </div>
 <div class="card">
@@ -1336,13 +1237,7 @@ S_△OPQ = ½|x₁y₂-x₂y₁| = 4.8</code></pre></div>
 
 <!-- ══ LLM — Dark tile ══ -->
 <section data-background-color="#272729" class="section-dark">
-<div class="sec-num">03</div>
-<h2>LLM 与智能体结合</h2>
-<p class="sec-desc">AI 辅助开发的全流程实践</p>
-</section>
-
-<section data-background-color="#272729" class="section-dark">
-<h2>LLM 辅助开发 — 参与环节</h2>
+<h2>LLM 辅助开发 — 参与环节与质量保证</h2>
 <div class="cols">
 <div class="col">
 <div class="card">
@@ -1358,32 +1253,26 @@ S_△OPQ = ½|x₁y₂-x₂y₁| = 4.8</code></pre></div>
 </div>
 <div class="col">
 <div class="card">
-<h3>人机协作模式</h3>
-<div style="text-align:center;margin:8px 0;">
-<span class="btn-pill" style="font-size:0.6em;">人类: 需求 + 验证</span>
-<span style="color:var(--blue-on-dark);font-size:0.9em;margin:0 6px;">⇄</span>
-<span class="btn-pill" style="font-size:0.6em;background:var(--blue-on-dark);">AI: 推导 + 实现</span>
+<h3>质量保证：三步闭环</h3>
+<div class="steps">
+<div class="step"><div class="step-num" style="background:var(--blue-on-dark);">1</div><div class="step-content"><strong>AI 生成</strong> — Claude Code 根据需求完成数学推导和代码实现</div></div>
+<div class="step"><div class="step-num" style="background:#e65100;">2</div><div class="step-content"><strong>人工验证</strong> — 检查联立方程系数、判别式、面积公式（发现过正负号错误）</div></div>
+<div class="step"><div class="step-num" style="background:#2e7d32;">3</div><div class="step-content"><strong>自动测试</strong> — 60 种题型全部执行，验证输出格式和配图生成</div></div>
 </div>
-<p style="font-size:0.55em;text-align:center;color:var(--body-muted);">人类把控方向与质量，AI 处理数学推导与代码实现</p>
+<p style="font-size:0.5em;text-align:center;color:var(--body-muted);margin-top:4px;">AI 生成的内容不直接使用，每种题型都经过验证闭环</p>
 </div>
 <div class="card">
 <h3>AI 优势与局限</h3>
-<table style="font-size:0.62em;">
+<table style="font-size:0.6em;">
 <tr><th>优势</th><th>局限</th></tr>
-<tr><td>数学推导速度快</td><td>复杂公式需人工验证</td></tr>
+<tr><td>数学推导速度快</td><td>个别题型有正负号错误</td></tr>
 <tr><td>模式化代码生成</td><td>边界条件需人工检查</td></tr>
-<tr><td>LaTeX 模板自动生成</td><td>竞赛规范需人工指导</td></tr>
-<tr><td>测试脚本全覆盖</td><td>UI 细节需人工调优</td></tr>
+<tr><td>LaTeX 模板自动生成</td><td>创造性构造题无法处理</td></tr>
 </table>
+<div style="margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,0.08);font-size:0.6em;display:flex;justify-content:space-between;align-items:center;">
+<span style="color:var(--body-muted);">单题型开发时间</span>
+<span><span style="text-decoration:line-through;color:var(--body-muted);">30-60 min</span> → <strong style="color:var(--blue-on-dark);">10-15 min</strong></span>
 </div>
-<div class="card">
-<h3>开发效率对比</h3>
-<table style="font-size:0.62em;">
-<tr><th>方式</th><th>单题型</th><th>数学正确率</th></tr>
-<tr><td>纯手写</td><td>30-60 min</td><td>依赖开发者</td></tr>
-<tr><td><strong>AI 辅助</strong></td><td><strong>5-10 min</strong></td><td><strong>需人工验证</strong></td></tr>
-<tr><td>纯 AI</td><td>2-3 min</td><td>可能有错误</td></tr>
-</table>
 </div>
 </div>
 </div>
@@ -1411,30 +1300,63 @@ S_△OPQ = ½|x₁y₂-x₂y₁| = 4.8</code></pre></div>
 </div>
 <div class="col">
 <div class="card">
-<h3>AI 生成的代码</h3>
-<div class="code-block"><div class="bar"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div><span>AI 生成 → 人工验证</span></div><pre><code># AI 生成的椭圆焦点弦核心代码
-A_coeff = b**2 + a**2 * k**2
-B_coeff = 2 * a**2 * c * k**2
-C_coeff = a**2*c**2*k**2 - a**2*b**2
+<h3>人工验证过程</h3>
+<div class="steps">
+<div class="step"><div class="step-num" style="background:#e65100;">1</div><div class="step-content"><strong>代入验算</strong> — 取 a=5, b=3, k=1，手算联立方程系数 A, B, C</div></div>
+<div class="step"><div class="step-num" style="background:#e65100;">2</div><div class="step-content"><strong>判别式检查</strong> — 确认 Δ ≥ 0，与 AI 结果对比</div></div>
+<div class="step"><div class="step-num" style="background:#e65100;">3</div><div class="step-content"><strong>弦长验证</strong> — 手算 |PQ| 与代码输出一致</div></div>
+<div class="step"><div class="step-num" style="background:#2e7d32;">4</div><div class="step-content"><strong>自动测试</strong> — 运行 test_all_types.py 确认可执行</div></div>
+</div>
+<p style="font-size:0.55em;color:var(--body-muted);margin-top:6px;">两者缺一不可：没有 AI，60 种题型逐一推导不现实；没有验证，数学错误会隐藏在代码中</p>
+</div>
+</div>
+</div>
+</section>
 
-disc = B_coeff**2 - 4*A_coeff*C_coeff
-assert disc >= 0, "判别式<0，调整参数"
-
-x1 = (-B_coeff + np.sqrt(disc))/(2*A_coeff)
-x2 = (-B_coeff - np.sqrt(disc))/(2*A_coeff)
-y1, y2 = k*(x1+c), k*(x2+c)</code></pre></div>
+<!-- ══ Claude Code 智能体 — Dark tile ══ -->
+<section data-background-color="#272729" class="section-dark">
+<h2>Claude Code — 真正的智能体</h2>
+<div class="cols">
+<div class="col">
+<div class="card">
+<h3>智能体工作流</h3>
+<div class="steps">
+<div class="step"><div class="step-num" style="background:var(--blue-on-dark);">1</div><div class="step-content"><strong>理解意图</strong> — 自然语言描述需求，如"实现椭圆蒙日圆题型"</div></div>
+<div class="step"><div class="step-num" style="background:var(--blue-on-dark);">2</div><div class="step-content"><strong>规划方案</strong> — 分析需修改的文件：generator、test、tui_app</div></div>
+<div class="step"><div class="step-num" style="background:var(--blue-on-dark);">3</div><div class="step-content"><strong>生成代码</strong> — 完成数学推导，生成 LaTeX 模板和 Python 函数</div></div>
+<div class="step"><div class="step-num" style="background:var(--blue-on-dark);">4</div><div class="step-content"><strong>运行测试</strong> — 自动执行 test_all_types.py，检查新题型</div></div>
+<div class="step"><div class="step-num" style="background:#e65100;">5</div><div class="step-content"><strong>修复错误</strong> — 分析失败原因，修改代码，重新测试直到通过</div></div>
+</div>
+</div>
+</div>
+<div class="col">
+<div class="card">
+<h3>为什么是"智能体"？</h3>
+<ul style="font-size:0.7em;">
+<li><strong>自主循环</strong> — 生成→测试→修复，不需人类干预</li>
+<li><strong>工具使用</strong> — 读写文件、执行命令、搜索代码</li>
+<li><strong>目标驱动</strong> — 理解需求后自主规划执行路径</li>
+<li><strong>错误恢复</strong> — 测试失败后自动分析和修复</li>
+</ul>
+</div>
+<div class="card">
+<h3>与 TUI 的区别</h3>
+<table style="font-size:0.62em;">
+<tr><th></th><th>TUI</th><th>Claude Code</th></tr>
+<tr><td>本质</td><td>用户接口</td><td>开发智能体</td></tr>
+<tr><td>解析方式</td><td>规则匹配</td><td>LLM 理解</td></tr>
+<tr><td>能力</td><td>关键词→函数调用</td><td>需求→推导→编码→测试</td></tr>
+</table>
+</div>
+<div class="card-parchment">
+<h3>核心价值</h3>
+<p style="font-size:0.65em;">每个题型的开发流程高度相似，智能体可以批量处理。60 种题型的开发，人类只需描述需求和验收结果。</p>
 </div>
 </div>
 </div>
 </section>
 
 <!-- ══ 演示 — Parchment tile ══ -->
-<section data-background-color="#f5f5f7" class="section-parchment">
-<div class="sec-num">04</div>
-<h2>功能演示</h2>
-<p class="sec-desc">实际运行效果展示</p>
-</section>
-
 <section data-background-color="#f5f5f7">
 <h2>演示：批量生成与测试</h2>
 <div class="cols">
@@ -1485,35 +1407,40 @@ y1, y2 = k*(x1+c), k*(x2+c)</code></pre></div>
 <!-- 配图效果展示 -->
 <section data-background-color="#f5f5f7">
 <h2>配图效果展示</h2>
-<div class="cols">
-<div class="col">
+<div class="cols-3" style="margin-bottom:12px;">
+<div>
 <div class="img-frame">
 <img src="output/demo_ellipse_chord.png" alt="椭圆焦点弦配图"
      onerror="this.parentElement.innerHTML='<div style=\x27padding:40px;color:var(--ink-muted-48);font-size:0.8em;\x27>📐 椭圆焦点弦 (a=5, b=3, k=1)</div>'">
 </div>
-<p style="text-align:center;margin-top:6px;font-size:0.65em;color:var(--ink-muted-48);">
-椭圆焦点弦题 — 关键点 F₁、F₂、P、Q 标注清晰
-</p>
+<p style="text-align:center;margin-top:4px;font-size:0.6em;color:var(--ink-muted-48);">椭圆焦点弦 — F₁、F₂、P、Q 标注清晰</p>
 </div>
-<div class="col">
-<div class="card">
-<h3>配图特点</h3>
-<ul style="font-size:0.7em;">
-<li><strong>参数方程绘图</strong> — 1000 采样点，曲线平滑</li>
+<div>
+<div class="img-frame">
+<img src="output/demo_hyperbola.png" alt="双曲线配图"
+     onerror="this.parentElement.innerHTML='<div style=\x27padding:40px;color:var(--ink-muted-48);font-size:0.8em;\x27>📐 双曲线渐近线</div>'">
+</div>
+<p style="text-align:center;margin-top:4px;font-size:0.6em;color:var(--ink-muted-48);">双曲线 — 渐近线与曲线关系准确</p>
+</div>
+<div>
+<div class="img-frame">
+<img src="output/demo_parabola.png" alt="抛物线配图"
+     onerror="this.parentElement.innerHTML='<div style=\x27padding:40px;color:var(--ink-muted-48);font-size:0.8em;\x27>📐 抛物线切线</div>'">
+</div>
+<p style="text-align:center;margin-top:4px;font-size:0.6em;color:var(--ink-muted-48);">抛物线 — 切点和焦点位置精确</p>
+</div>
+</div>
+<div class="card" style="text-align:center;">
+<ul style="font-size:0.65em;display:inline-flex;gap:24px;list-style:none;padding:0;margin:0;">
+<li><strong>参数方程绘图</strong> — 1000 采样点，非贝塞尔近似</li>
 <li><strong>等比例坐标</strong> — x/y 轴单位长度一致</li>
-<li><strong>自适应范围</strong> — 遍历所有关键点确保不裁剪</li>
-<li><strong>精确标注</strong> — 焦点(金)、交点(蓝)、弦(红)</li>
+<li><strong>自适应范围</strong> — 遍历关键点确保不裁剪</li>
+<li><strong>精确标注</strong> — 焦点(金)、交点(蓝)、切线(橙)</li>
 </ul>
 </div>
-<div class="card-parchment">
-<h3>现场演示</h3>
-<p style="font-size:0.7em;">
-如果时间允许，我可以现场演示 TUI 交互：<br>
-输入 <code>椭圆 竞赛</code> 看系统如何自动生成高难度题目
+<p style="font-size:0.6em;color:var(--ink-muted-48);text-align:center;margin-top:8px;">
+如果时间允许，现场演示 TUI：输入 <code>椭圆 竞赛</code> 看系统自动生成高难度题目
 </p>
-</div>
-</div>
-</div>
 </section>
 
 <!-- ══ 总结 — Dark tile ══ -->
@@ -1534,7 +1461,7 @@ y1, y2 = k*(x1+c), k*(x2+c)</code></pre></div>
 <div><div style="font-size:2em; font-weight:700; color:var(--blue-on-dark);">60</div><div style="font-size:0.6em; color:var(--body-muted);">种题型</div></div>
 <div><div style="font-size:2em; font-weight:700; color:var(--blue-on-dark);">100%</div><div style="font-size:0.6em; color:var(--body-muted);">测试通过</div></div>
 <div><div style="font-size:2em; font-weight:700; color:var(--blue-on-dark);">&lt;1s</div><div style="font-size:0.6em; color:var(--body-muted);">生成速度</div></div>
-<div><div style="font-size:2em; font-weight:700; color:var(--blue-on-dark);">3-6x</div><div style="font-size:0.6em; color:var(--body-muted);">效率提升</div></div>
+<div><div style="font-size:1.4em; font-weight:700; color:var(--blue-on-dark);">Claude Code</div><div style="font-size:0.6em; color:var(--body-muted);">智能体驱动</div></div>
 </div>
 </div>
 </div>
@@ -1543,7 +1470,7 @@ y1, y2 = k*(x1+c), k*(x2+c)</code></pre></div>
 <ul style="font-size:0.7em;">
 <li><strong>参数方程精确绘图</strong> — 非贝塞尔近似，1000 采样点</li>
 <li><strong>LaTeX → Unicode</strong> — 实时终端渲染</li>
-<li><strong>TUI 智能体</strong> — 自然语言解析 + 难度路由</li>
+<li><strong>Claude Code 智能体</strong> — 理解→规划→生成→测试→修复</li>
 <li><strong>可扩展架构</strong> — 新增题型只需添加函数</li>
 </ul>
 </div>
@@ -1554,8 +1481,8 @@ y1, y2 = k*(x1+c), k*(x2+c)</code></pre></div>
 <ul style="font-size:0.7em;">
 <li>LLM 参与<strong>架构设计、数学推导、代码生成、UI 设计、测试</strong>全流程</li>
 <li>人机协作模式：人类把控方向，AI 处理细节</li>
-<li>单题型开发效率提升 <strong>3-6 倍</strong></li>
-<li>TUI 自然语言解析实现智能体交互</li>
+<li>质量保证：<strong>AI 生成 → 人工验证 → 自动测试</strong>三步闭环</li>
+<li>Claude Code 智能体：自主完成推导→编码→测试→修复循环</li>
 </ul>
 </div>
 <div class="card">
@@ -1573,9 +1500,9 @@ y1, y2 = k*(x1+c), k*(x2+c)</code></pre></div>
 <div class="card">
 <h3>不足与改进</h3>
 <ul style="font-size:0.7em;">
-<li>部分竞赛题解答需人工校验</li>
-<li>配图暂不支持 3D 可视化</li>
-<li>可接入 LLM API 实现对话式出题</li>
+<li>数学推导基于硬编码模板，无法处理需要创造性辅助线的几何构造题</li>
+<li>配图仅支持 2D 平面，空间解析几何暂不支持</li>
+<li>部分竞赛题 LaTeX 解答格式固定，缺乏多解法展示</li>
 </ul>
 </div>
 </div>
