@@ -9,7 +9,6 @@ Analytic Geometry Problem Generator - Main Entry Point
 1. 生成所有类型的解析几何题目
 2. 渲染精确配图
 3. 输出LaTeX格式的题干和解答
-4. 生成PPT演示文稿
 """
 
 import os
@@ -18,7 +17,6 @@ from datetime import datetime
 
 from problem_generator import ProblemGenerator, Problem
 from diagram_renderer import DiagramRenderer
-from create_ppt import GeometryPPTCreator
 
 
 def print_separator(char: str = "=", length: int = 70):
@@ -106,17 +104,6 @@ def main():
     # 生成所有题目
     problems = generate_all_problems(generator, renderer, output_dir, show_solution)
 
-    # 生成PPT
-    print("\n\n" + "=" * 70)
-    print("正在生成PPT演示文稿...")
-    print("=" * 70)
-
-    ppt_creator = GeometryPPTCreator()
-    ppt_path = ppt_creator.create_presentation(
-        os.path.join(output_dir, "解析几何题目生成系统.pptx")
-    )
-    print(f"✓ PPT已保存: {ppt_path}")
-
     # 统计信息
     print("\n\n" + "=" * 70)
     print("生成统计")
@@ -127,7 +114,6 @@ def main():
     print(f"  - 抛物线题目: 3 (基础/进阶/竞赛)")
     print(f"  - 极坐标题目: 3 (基础/进阶/竞赛)")
     print(f"配图数量: {len(problems)}")
-    print(f"PPT演示文稿: 1份 (12页)")
     print(f"\n输出目录: {output_dir}")
     print("=" * 70)
 
