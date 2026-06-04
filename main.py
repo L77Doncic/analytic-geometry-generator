@@ -89,7 +89,9 @@ def generate_all_problems(generator: ProblemGenerator, renderer: DiagramRenderer
 def main():
     """主函数"""
     # 配置
-    output_dir = "/root/analytic_geometry_generator/output"
+    base_dir = "/root/analytic_geometry_generator/output"
+    timestamp = datetime.now().strftime("Question_%Y%m%d_%H%M%S")
+    output_dir = os.path.join(base_dir, timestamp)
     seed = 42  # 随机种子，保证可复现
     show_solution = True  # 是否显示解答
 
