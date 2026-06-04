@@ -1047,100 +1047,6 @@ def _plot_hyperbola(self, ax, params):
 </div>
 </section>
 
-<section data-background-color="#272729" class="section-dark">
-<h2>实现原理：TUI 交互</h2>
-<div class="cols">
-<div class="col">
-<div class="card">
-<h3>自然语言解析</h3>
-<div class="code-block"><div class="bar"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div><span>tui_app.py</span></div><pre><code>def parse_user_input(text):
-    result = {
-        "topic": None,
-        "problem_type": "basic",
-        "params": {},
-        "slope": None
-    }
-
-    # 1. 识别知识点
-    topic_map = {
-        "椭圆": "ellipse",
-        "双曲线": "hyperbola",
-        "抛物线": "parabola",
-        "极坐标": "polar"
-    }
-    for keyword, topic in topic_map.items():
-        if keyword in text:
-            result["topic"] = topic
-            break
-
-    # 2. 识别题型
-    type_map = {
-        "基础": "basic", "弦长": "chord",
-        "竞赛": "auto", "压轴": "auto",
-        "蒙日": "monge_circle",
-        "阿波罗尼斯": "apollonius"
-    }
-    for keyword, ptype in type_map.items():
-        if keyword in text:
-            result["problem_type"] = ptype
-            break
-
-    # 3. 提取参数
-    param_patterns = {
-        "a": r'a\s*[=＝]\s*([\d.]+)',
-        "b": r'b\s*[=＝]\s*([\d.]+)',
-        "p": r'p\s*[=＝]\s*([\d.]+)',
-        "k": r'k\s*[=＝]\s*([\d.]+)',
-    }
-    for key, pattern in param_patterns.items():
-        match = re.search(pattern, text)
-        if match:
-            result["params"][key] = float(match.group(1))
-
-    return result</code></pre></div>
-</div>
-</div>
-<div class="col">
-<div class="card">
-<h3>难度路由</h3>
-<div class="code-block"><div class="bar"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div><span>自动选择题型</span></div><pre><code># 竞赛/压轴难度
-if "竞赛" in text or "压轴" in text:
-    hard_types = {
-        "ellipse": [
-            "fixed_point", "area_opt",
-            "ecc_range", "tangent",
-            "third_def", "optical_property",
-            "monge_circle", "apollonius"
-        ],
-        "hyperbola": [
-            "asymptote_angle", "area_opt",
-            "optical_property", "monge_circle",
-            "butterfly"
-        ],
-        "parabola": [
-            "archimedes", "fixed_point",
-            "optical_property", "monge_circle",
-            "vector_bridge"
-        ]
-    }
-    result["problem_type"] = random.choice(
-        hard_types[topic]
-    )</code></pre></div>
-</div>
-<div class="card">
-<h3>TUI 界面架构</h3>
-<ul style="font-size:0.65em;">
-<li><strong>Textual 框架</strong> — 终端 UI</li>
-<li><strong>SplitBar</strong> — 可拖拽分栏</li>
-<li><strong>RichLog</strong> — 聊天记录</li>
-<li><strong>Input</strong> — 用户输入框</li>
-<li><strong>异步生成</strong> — @work(thread=True)</li>
-</ul>
-</div>
-</div>
-</div>
-</section>
-
 <!-- ══ 精确配图 — Parchment tile ══ -->
 <section data-background-color="#f5f5f7">
 <h2>配图渲染原理</h2>
@@ -1188,6 +1094,57 @@ S_△OPQ = ½|x₁y₂-x₂y₁| = 4.8</code></pre></div>
 </div>
 </section>
 
+<section data-background-color="#272729" class="section-dark">
+<h2>TUI 交互：解析与路由</h2>
+<div class="cols">
+<div class="col">
+<div class="card">
+<h3>自然语言解析</h3>
+<div class="code-block"><div class="bar"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div><span>tui_app.py</span></div><pre><code>def parse_user_input(text):
+    result = {
+        "topic": None,
+        "problem_type": "basic",
+        "params": {},
+        "slope": None
+    }
+
+    # 1. 识别知识点
+    topic_map = {
+        "椭圆": "ellipse",
+        "双曲线": "hyperbola",
+        "抛物线": "parabola",
+        "极坐标": "polar"
+    }
+    for keyword, topic in topic_map.items():
+        if keyword in text:
+            result["topic"] = topic
+            break
+
+    # 2. 识别题型 + 3. 提取参数
+    # ... (正则匹配)</code></pre></div>
+</div>
+</div>
+<div class="col">
+<div class="card">
+<h3>难度路由</h3>
+<div class="code-block"><div class="bar"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div><span>自动选择题型</span></div><pre><code># 竞赛/压轴难度
+if "竞赛" in text or "压轴" in text:
+    hard_types = {
+        "ellipse": ["fixed_point", "area_opt",
+            "ecc_range", "monge_circle"],
+        "hyperbola": ["asymptote_angle", "area_opt",
+            "monge_circle", "butterfly"],
+        "parabola": ["archimedes", "fixed_point",
+            "optical_property", "monge_circle"]
+    }
+    result["problem_type"] = random.choice(
+        hard_types[topic]
+    )</code></pre></div>
+</div>
+</div>
+</div>
+</section>
+
 <!-- ══ TUI — White tile ══ -->
 <section data-background-color="#ffffff">
 <h2>TUI 交互界面</h2>
@@ -1200,7 +1157,6 @@ S_△OPQ = ½|x₁y₂-x₂y₁| = 4.8</code></pre></div>
 <li><strong>可拖拽分栏</strong> — 左侧对话历史 + 右侧配图预览</li>
 <li><strong>侧边栏</strong> — 快捷命令和题型说明</li>
 <li><strong>实时渲染</strong> — 输入即生成，LaTeX 即时转换为 Unicode</li>
-<li><strong>自然语言解析</strong> — 基于规则的中文关键词识别</li>
 </ul>
 </div>
 <div class="card">
@@ -1232,6 +1188,8 @@ S_△OPQ = ½|x₁y₂-x₂y₁| = 4.8</code></pre></div>
 </div>
 </div>
 </section>
+
+
 
 <!-- ══ LLM — Dark tile ══ -->
 <section data-background-color="#272729" class="section-dark">
