@@ -17,6 +17,7 @@ from datetime import datetime
 
 from problem_generator import ProblemGenerator, Problem
 from diagram_renderer import DiagramRenderer
+from latex_render import render_problem_text
 
 
 def print_separator(char: str = "=", length: int = 70):
@@ -81,7 +82,30 @@ def generate_all_problems(generator: ProblemGenerator, renderer: DiagramRenderer
             # 渲染配图
             img_path = os.path.join(output_dir, f"{topic_names[topic]}_difficulty{diff}.png")
             renderer.render(problem, img_path)
-            print(f"✓ 配图已保存: {img_path}")
+
+            # 保存 LaTeX 题干
+            tex_path = os.path.join(output_dir, f"{topic_names[topic]}_difficulty{diff}.tex")
+            with open(tex_path, "w", encoding="utf-8") as f:
+                f.write(f"% {problem.title}\n\n")
+                f.write(problem.problem_latex)
+
+            # 保存 LaTeX 解答
+            sol_path = os.path.join(output_dir, f"{topic_names[topic]}_difficulty{diff}_solution.tex")
+            with open(sol_path, "w", encoding="utf-8") as f:
+                f.write(f"% {problem.title} — 解答\n\n")
+                f.write(problem.solution_latex)
+
+            # 保存纯文本版
+            txt_path = os.path.join(output_dir, f"{topic_names[topic]}_difficulty{diff}.txt")
+            with open(txt_path, "w", encoding="utf-8") as f:
+                f.write(f"{'='*50}\n")
+                f.write(f"{problem.title}\n")
+                f.write(f"{'='*50}\n\n")
+                f.write(render_problem_text(problem.problem_latex))
+                f.write(f"\n\n{'─'*50}\n\n")
+                f.write(render_problem_text(problem.solution_latex))
+
+            print(f"✓ 配图+文字已保存: {img_path}")
 
     return all_problems
 
