@@ -39,3 +39,4 @@ output/
 
 # Claude Code worktrees
 .claude/
+docs/defense-script.md
