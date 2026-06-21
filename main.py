@@ -12,7 +12,6 @@ Analytic Geometry Problem Generator - Main Entry Point
 """
 
 import os
-import sys
 from datetime import datetime
 
 from problem_generator import ProblemGenerator, Problem
@@ -112,8 +111,9 @@ def generate_all_problems(generator: ProblemGenerator, renderer: DiagramRenderer
 
 def main():
     """主函数"""
-    # 配置
-    base_dir = "/root/analytic_geometry_generator/output"
+    # 配置 — 输出目录相对于项目根目录
+    project_root = os.path.dirname(os.path.abspath(__file__))
+    base_dir = os.path.join(project_root, "output")
     timestamp = datetime.now().strftime("Question_%Y%m%d_%H%M%S")
     output_dir = os.path.join(base_dir, timestamp)
     seed = 42  # 随机种子，保证可复现
@@ -124,31 +124,41 @@ def main():
 
     # 初始化组件
     print("正在初始化系统...")
-    generator = ProblemGenerator(seed=seed)
-    renderer = DiagramRenderer(figsize=(10, 8), dpi=150)
+    try:
+        generator = ProblemGenerator(seed=seed)
+        renderer = DiagramRenderer(figsize=(10, 8), dpi=150)
+    except Exception as e:
+        print(f"❌ 初始化失败: {e}")
+        return
 
     # 生成所有题目
-    problems = generate_all_problems(generator, renderer, output_dir, show_solution)
+    try:
+        problems = generate_all_problems(generator, renderer, output_dir, show_solution)
+    except Exception as e:
+        print(f"❌ 生成过程中出错: {e}")
+        return
 
-    # 统计信息
+    # 统计信息 — 动态计算各类型数量
+    topic_counts = {}
+    for p in problems:
+        topic_counts[p.topic] = topic_counts.get(p.topic, 0) + 1
+
     print("\n\n" + "=" * 70)
     print("生成统计")
     print("=" * 70)
     print(f"总题目数: {len(problems)}")
-    print(f"  - 椭圆题目: 3 (基础/进阶/竞赛)")
-    print(f"  - 双曲线题目: 3 (基础/进阶/竞赛)")
-    print(f"  - 抛物线题目: 3 (基础/进阶/竞赛)")
-    print(f"  - 极坐标题目: 3 (基础/进阶/竞赛)")
+    for topic_name, count in topic_counts.items():
+        print(f"  - {topic_name}题目: {count}")
     print(f"配图数量: {len(problems)}")
     print(f"\n输出目录: {output_dir}")
     print("=" * 70)
 
     # 列出所有输出文件
     print("\n输出文件列表:")
-    for f in sorted(os.listdir(output_dir)):
-        filepath = os.path.join(output_dir, f)
+    for fname in sorted(os.listdir(output_dir)):
+        filepath = os.path.join(output_dir, fname)
         size_kb = os.path.getsize(filepath) / 1024
-        print(f"  - {f} ({size_kb:.1f} KB)")
+        print(f"  - {fname} ({size_kb:.1f} KB)")
 
 
 if __name__ == "__main__":

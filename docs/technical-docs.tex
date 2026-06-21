@@ -1,0 +1,692 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{ctex}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{graphicx}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{geometry}
+\usepackage{booktabs}
+\usepackage{enumitem}
+\usepackage{fancyhdr}
+\usepackage{tcolorbox}
+\usepackage{tikz}
+\usetikzlibrary{shapes.geometric, arrows.meta, positioning, fit, backgrounds}
+
+\geometry{margin=1in}
+
+% Colors
+\definecolor{tipgreen}{RGB}{46,125,50}
+\definecolor{noteblue}{RGB}{21,101,192}
+\definecolor{warningyellow}{RGB}{245,124,0}
+\definecolor{errorred}{RGB}{198,40,40}
+\definecolor{codebg}{RGB}{245,245,245}
+\definecolor{codeframe}{RGB}{200,200,200}
+
+% Code listing style
+\lstset{
+    basicstyle=\ttfamily\small,
+    keywordstyle=\color{blue}\bfseries,
+    commentstyle=\color{gray},
+    stringstyle=\color{red},
+    breaklines=true,
+    frame=single,
+    numbers=left,
+    numberstyle=\tiny\color{gray},
+    backgroundcolor=\color{codebg},
+    tabsize=4,
+    showstringspaces=false
+}
+
+% Tip/Note/Warning boxes
+\newtcolorbox{tipbox}{
+    colback=tipgreen!5,
+    colframe=tipgreen!75,
+    title={\textbf{Tip}},
+    fonttitle=\bfseries,
+    rounded corners,
+    boxrule=1pt
+}
+
+\newtcolorbox{notebox}{
+    colback=noteblue!5,
+    colframe=noteblue!75,
+    title={\textbf{Note}},
+    fonttitle=\bfseries,
+    rounded corners,
+    boxrule=1pt
+}
+
+\newtcolorbox{warningbox}{
+    colback=warningyellow!5,
+    colframe=warningyellow!75,
+    title={\textbf{Warning}},
+    fonttitle=\bfseries,
+    rounded corners,
+    boxrule=1pt
+}
+
+% Header/Footer
+\pagestyle{fancy}
+\fancyhf{}
+\rhead{解析几何题目生成系统}
+\lhead{技术原理说明文档}
+\rfoot{\thepage}
+
+\title{\Huge 解析几何题目生成系统 \\ \Large 技术原理说明文档}
+\author{西安交通大学}
+\date{2026 年 6 月}
+
+\begin{document}
+
+\maketitle
+\tableofcontents
+\newpage
+
+\section{项目概述}
+
+\subsection{背景}
+
+解析几何是高中数学的核心内容，涵盖椭圆、双曲线、抛物线和极坐标等知识点。传统的出题方式依赖教师手动编写，存在以下问题：
+
+\begin{itemize}
+    \item \textbf{人工成本高}：每道题需要手动推导参数、验证可解性、绘制配图
+    \item \textbf{配图不精确}：手绘或简单绘图工具难以保证关键点位置与数学参数一致
+    \item \textbf{题型覆盖有限}：难以系统性地覆盖从基础到竞赛的全部题型
+\end{itemize}
+
+\subsection{目标}
+
+本系统旨在实现：
+
+\begin{enumerate}
+    \item 用户指定知识点（椭圆/双曲线/抛物线/极坐标）与参数，\textbf{自动生成}可解的解析几何题目
+    \item 生成\textbf{格式严谨的 LaTeX 题干}与完整解答
+    \item 代码渲染\textbf{精确配图}，图中所有关键点、直线、曲线的位置与题干数学参数严格一致
+    \item 覆盖 \textbf{60+ 种题型}，从基础标准方程到高考压轴和竞赛难度
+\end{enumerate}
+
+\subsection{技术栈}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lll}
+\toprule
+组件 & 技术 & 用途 \\
+\midrule
+语言 & Python 3.12 & 主开发语言 \\
+数值计算 & NumPy & 矩阵运算、方程求解、参数计算 \\
+绘图 & Matplotlib & 参数方程精确绘图 \\
+TUI & Textual + Rich & 终端交互界面 \\
+打包 & PyInstaller & 独立可执行文件 \\
+\bottomrule
+\end{tabular}
+\caption{技术栈}
+\end{table}
+
+\section{系统架构}
+
+\subsection{整体架构}
+
+系统采用\textbf{双路径生成策略}，两条路径共享同一数据模型：
+
+\begin{figure}[h]
+\centering
+\begin{tikzpicture}[
+    node distance=0.5cm,
+    block/.style={rectangle, draw, fill=blue!10, text width=2.4cm, text centered, rounded corners=4pt, minimum height=0.6cm, font=\footnotesize},
+    process/.style={rectangle, draw, fill=orange!10, text width=2.8cm, text centered, rounded corners=4pt, minimum height=0.6cm, font=\footnotesize},
+    io/.style={rectangle, draw, fill=green!10, text width=1.8cm, text centered, rounded corners=4pt, minimum height=0.6cm, font=\footnotesize},
+    arrow/.style={-{Stealth[length=4pt]}, thick, gray!50},
+]
+
+% Input
+\node[io] (input) {用户输入};
+
+% Parser
+\node[block, below=of input] (parser) {TUI Parser};
+
+% Two paths - side by side
+\node[block, below left=0.5cm and 1.6cm of parser] (static) {静态模板 (12种)};
+\node[block, below right=0.5cm and 1.6cm of parser] (dynamic) {动态生成 (60+种)};
+
+% Generator
+\node[process, below=0.5cm of static] (generator) {ProblemGenerator};
+
+% Renderers
+\node[block, below left=0.5cm and 0.8cm of generator] (diagram) {DiagramRenderer};
+\node[block, below right=0.5cm and 0.8cm of generator] (latex) {LatexRender};
+
+% Output
+\node[io, below=0.5cm of generator] (output) {output/};
+
+% Arrows - straight lines only
+\draw[arrow] (input) -- (parser);
+\draw[arrow] (parser) -- (static);
+\draw[arrow] (parser) -- (dynamic);
+\draw[arrow] (static) -- (generator);
+\draw[arrow] (dynamic) -- (generator);
+\draw[arrow] (generator) -- (diagram);
+\draw[arrow] (generator) -- (latex);
+\draw[arrow] (diagram) -- (output);
+\draw[arrow] (latex) -- (output);
+
+\end{tikzpicture}
+\caption{系统整体架构图}
+\label{fig:architecture}
+\end{figure}
+
+\subsection{模块依赖}
+
+\begin{verbatim}
+run.py  ────────────────────────── 统一入口
+  │
+  ├─ TUI 模式 ──→ tui_app.py
+  │               ├─ interactive_generator.py  (动态生成)
+  │               ├─ diagram_renderer.py       (配图渲染)
+  │               └─ latex_render.py           (LaTeX转换)
+  │
+  ├─ CLI 模式 ──→ interactive_generator.py
+  │               ├─ problem_generator.py      (数据模型)
+  │               ├─ diagram_renderer.py
+  │               └─ latex_render.py
+  │
+  └─ 批量模式 ──→ main.py
+                  ├─ problem_generator.py
+                  └─ diagram_renderer.py
+\end{verbatim}
+
+\subsection{双路径生成策略}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{llll}
+\toprule
+路径 & 模块 & 题型数 & 用途 \\
+\midrule
+静态模板 & problem\_generator.py & 12 & 批量生成、演示 \\
+动态生成 & interactive\_generator.py & 60+ & 用户交互、指定参数 \\
+\bottomrule
+\end{tabular}
+\caption{双路径生成策略}
+\end{table}
+
+\begin{notebox}
+两条路径共享 \texttt{Problem}、\texttt{ConicParams}、\texttt{Point}、\texttt{Line} 等数据类，保证输出格式一致。
+\end{notebox}
+
+\section{核心数据模型}
+
+\subsection{ConicParams — 圆锥曲线参数}
+
+\begin{lstlisting}[language=Python]
+@dataclass
+class ConicParams:
+    """圆锥曲线参数"""
+    center: Tuple[float, float] = (0, 0)  # 中心点
+    a: float = 1.0  # 半长轴 / 半实轴
+    b: float = 1.0  # 半短轴 / 半虚轴
+    c: float = 0.0  # 半焦距
+    e: float = 0.0  # 离心率
+    rotation: float = 0.0  # 旋转角度(弧度)
+
+    def __post_init__(self):
+        if self.c == 0:
+            self.c = np.sqrt(abs(self.a**2 - self.b**2))
+        if self.e == 0 and self.c > 0:
+            self.e = self.c / self.a
+\end{lstlisting}
+
+\textbf{Args:}
+\begin{itemize}
+    \item \texttt{center} (\texttt{Tuple[float, float]}) — 中心点坐标，默认 $(0, 0)$
+    \item \texttt{a} (\texttt{float}) — 半长轴/半实轴，默认 $1.0$
+    \item \texttt{b} (\texttt{float}) — 半短轴/半虚轴，默认 $1.0$
+    \item \texttt{c} (\texttt{float}) — 半焦距，默认 $0.0$（自动计算）
+    \item \texttt{e} (\texttt{float}) — 离心率，默认 $0.0$（自动计算）
+    \item \texttt{rotation} (\texttt{float}) — 旋转角度（弧度），默认 $0.0$
+\end{itemize}
+
+\textbf{自动计算规则:}
+\begin{itemize}
+    \item 椭圆：$c = \sqrt{a^2 - b^2}$，$e = c/a$
+    \item 双曲线：$c = \sqrt{a^2 + b^2}$，$e = c/a$
+    \item 抛物线：$a = p/2$，$b = 0$，$c = p/2$
+\end{itemize}
+
+\begin{tipbox}
+$c$ 和 $e$ 在 \texttt{\_\_post\_init\_\_} 中自动计算，避免手动推导错误。
+\end{tipbox}
+
+\subsection{Point — 二维点}
+
+\begin{lstlisting}[language=Python]
+@dataclass
+class Point:
+    """二维点"""
+    x: float
+    y: float
+    label: str = ""
+
+    def distance_to(self, other: 'Point') -> float:
+        """计算到另一个点的距离"""
+        return np.sqrt((self.x - other.x)**2 + (self.y - other.y)**2)
+\end{lstlisting}
+
+\textbf{Args:}
+\begin{itemize}
+    \item \texttt{x} (\texttt{float}) — x 坐标
+    \item \texttt{y} (\texttt{float}) — y 坐标
+    \item \texttt{label} (\texttt{str}) — 点的标签（如 "F\_1", "P"），默认空字符串
+\end{itemize}
+
+\textbf{Methods:}
+\begin{itemize}
+    \item \texttt{distance\_to(other)} — 计算到另一个 Point 的欧几里得距离
+\end{itemize}
+
+\subsection{Line — 直线 (ax + by + c = 0)}
+
+\begin{lstlisting}[language=Python]
+@dataclass
+class Line:
+    """直线: ax + by + c = 0"""
+    a: float
+    b: float
+    c: float
+    label: str = ""
+
+    def slope(self) -> float:
+        """计算斜率"""
+        return -self.a / self.b if self.b != 0 else float('inf')
+
+    def distance_to_point(self, p: Point) -> float:
+        """计算点到直线的距离"""
+        return abs(self.a * p.x + self.b * p.y + self.c) / np.sqrt(self.a**2 + self.b**2)
+\end{lstlisting}
+
+\textbf{Args:}
+\begin{itemize}
+    \item \texttt{a}, \texttt{b}, \texttt{c} (\texttt{float}) — 直线方程 $ax + by + c = 0$ 的系数
+    \item \texttt{label} (\texttt{str}) — 直线的标签，默认空字符串
+\end{itemize}
+
+\textbf{Methods:}
+\begin{itemize}
+    \item \texttt{slope()} — 返回直线的斜率（垂直线返回 \texttt{inf}）
+    \item \texttt{distance\_to\_point(p)} — 返回点 \texttt{p} 到直线的距离
+\end{itemize}
+
+\subsection{Problem — 题目对象}
+
+\begin{lstlisting}[language=Python]
+@dataclass
+class Problem:
+    """解析几何题目"""
+    title: str                    # 题目标题
+    topic: str                    # 知识点 (ellipse/hyperbola/parabola/polar)
+    difficulty: int               # 难度等级 (1-5)
+    problem_latex: str            # 题干 LaTeX
+    solution_latex: str           # 解答 LaTeX
+    conic_params: ConicParams     # 圆锥曲线参数
+    points: List[Point]           # 关键点 (焦点、顶点、交点)
+    lines: List[Line]             # 关键直线 (渐近线、准线、弦)
+    conic_type: str               # 曲线类型
+    answer: str                   # 最终答案
+\end{lstlisting}
+
+\textbf{Args:}
+\begin{itemize}
+    \item \texttt{title} (\texttt{str}) — 题目的显示标题
+    \item \texttt{topic} (\texttt{str}) — 知识点，可选值：\texttt{"ellipse"}, \texttt{"hyperbola"}, \texttt{"parabola"}, \texttt{"polar"}
+    \item \texttt{difficulty} (\texttt{int}) — 难度等级，范围 1-5
+    \item \texttt{problem\_latex} (\texttt{str}) — 题干的 LaTeX 格式文本
+    \item \texttt{solution\_latex} (\texttt{str}) — 解答的 LaTeX 格式文本
+    \item \texttt{conic\_params} (\texttt{ConicParams}) — 圆锥曲线的数学参数
+    \item \texttt{points} (\texttt{List[Point]}) — 关键点列表（焦点、顶点、交点等）
+    \item \texttt{lines} (\texttt{List[Line]}) — 关键直线列表（渐近线、准线、弦等）
+    \item \texttt{conic\_type} (\texttt{str}) — 曲线类型，用于配图渲染
+    \item \texttt{answer} (\texttt{str}) — 最终答案的 LaTeX 格式文本
+\end{itemize}
+
+\section{题目生成算法}
+
+\subsection{总体流程}
+
+每种题型的生成遵循统一流程：
+
+\begin{enumerate}
+    \item \textbf{参数选取} — 从预设集合中随机选取 $a$, $b$（或 $p$, $r$）等参数
+    \item \textbf{参数推导} — 计算 $c$, $e$，确定焦点、顶点等关键点坐标
+    \item \textbf{几何构造} — 根据题型构造直线、计算交点
+    \item \textbf{可解性验证} — 检查判别式 $\Delta \geq 0$
+    \item \textbf{LaTeX 生成} — 使用 f-string 模板嵌入计算结果
+    \item \textbf{解答生成} — 包含完整的推导过程
+\end{enumerate}
+
+\subsection{椭圆焦点弦 — 算法示例}
+
+以"椭圆焦点弦"题型为例，说明完整的生成算法。
+
+\textbf{输入}：半长轴 $a$，半短轴 $b$，弦斜率 $k$
+
+\textbf{Step 1 — 计算基础参数}
+
+\[
+c = \sqrt{a^2 - b^2}, \quad e = \frac{c}{a}
+\]
+
+左焦点 $F_1(-c, 0)$，右焦点 $F_2(c, 0)$。
+
+\textbf{Step 2 — 构造直线方程}
+
+过 $F_1$ 斜率为 $k$ 的直线：
+
+\[
+y = k(x + c)
+\]
+
+\textbf{Step 3 — 联立方程求交点}
+
+将直线代入椭圆方程 $\frac{x^2}{a^2} + \frac{y^2}{b^2} = 1$：
+
+\[
+\frac{x^2}{a^2} + \frac{k^2(x+c)^2}{b^2} = 1
+\]
+
+整理得二次方程：
+
+\[
+(b^2 + a^2k^2)x^2 + 2a^2ck^2x + (a^2c^2k^2 - a^2b^2) = 0
+\]
+
+\textbf{Step 4 — 判别式验证}
+
+\[
+\Delta = (2a^2ck^2)^2 - 4(b^2 + a^2k^2)(a^2c^2k^2 - a^2b^2) \geq 0
+\]
+
+\begin{warningbox}
+若 $\Delta < 0$，说明直线与椭圆无交点，需要调整参数重新生成。
+\end{warningbox}
+
+\textbf{Step 5 — 韦达定理求交点}
+
+\[
+x_1 = \frac{-B + \sqrt{\Delta}}{2A}, \quad x_2 = \frac{-B - \sqrt{\Delta}}{2A}
+\]
+
+\[
+y_1 = k(x_1 + c), \quad y_2 = k(x_2 + c)
+\]
+
+\textbf{Step 6 — 计算弦长与面积}
+
+\[
+|PQ| = \sqrt{1 + k^2} \cdot |x_1 - x_2|
+\]
+
+\[
+S_{\triangle OPQ} = \frac{1}{2}|x_1 y_2 - x_2 y_1|
+\]
+
+\subsection{题型覆盖}
+
+系统覆盖 4 大知识点、60+ 种题型：
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{p{1.5cm}p{3cm}p{4.5cm}p{5.5cm}}
+\toprule
+知识点 & 基础 & 进阶 & 竞赛/压轴 \\
+\midrule
+\textbf{椭圆} & 标准方程、焦点 & 焦点弦、中点弦、焦半径、切线、斜率积、第二定义 & 定点证明、面积最值、离心率范围、极点极线、第三定义、光学性质、轨迹方程、蒙日圆、阿波罗尼斯圆 \\
+\textbf{双曲线} & 标准方程、渐近线 & 焦点弦、中点弦、焦半径、切线、斜率积、第二定义 & 渐近线平行弦、焦点三角形面积、离心率范围、极点极线、光学性质、轨迹方程、等轴双曲线、蒙日圆、蝴蝶问题 \\
+\textbf{抛物线} & 标准方程、焦点 & 焦点弦、中点弦、焦半径、切线、斜率积、第二定义 & 阿基米德三角形、定点证明、焦点弦性质、光学性质、轨迹方程、向量搭桥、蒙日圆 \\
+\textbf{极坐标} & 坐标互化 & 直线与圆、焦半径、弦长比值、斜率积、定点 & 圆锥曲线极坐标方程、第二定义、面积最值、统一极坐标方程、参数方程应用 \\
+\bottomrule
+\end{tabular}
+\caption{题型覆盖}
+\end{table}
+
+\subsection{可解性保证}
+
+每道题在生成过程中都经过数学验证：
+
+\begin{itemize}
+    \item \textbf{判别式检查}：$\Delta \geq 0$ 确保直线与曲线有实交点
+    \item \textbf{参数约束}：椭圆 $a > b > 0$，双曲线 $a, b > 0$，抛物线 $p > 0$
+    \item \textbf{整数优化}：从 $\{2, 3, 4, 5, 6\}$ 等小整数集合中选取参数，优先产生整数或简单分数解
+\end{itemize}
+
+\section{精确配图渲染}
+
+\subsection{设计原则}
+
+配图渲染的核心原则是\textbf{精确性}：图中所有关键点、直线、曲线的位置必须与题干数学参数严格一致。
+
+\subsection{渲染流程}
+
+\begin{verbatim}
+Step 1: 确定坐标范围
+        ├─ 根据 conic_params 计算基础范围
+        ├─ 遍历所有 Point 确保不裁剪
+        └─ 等比例缩放 (set_aspect='equal')
+
+Step 2: 绘制坐标系
+        ├─ 网格线 (alpha=0.3)
+        ├─ 坐标轴 (带箭头)
+        └─ 刻度标签
+
+Step 3: 绘制曲线 (参数方程, 1000 采样点)
+        ├─ 椭圆: x = a·cos(θ), y = b·sin(θ)
+        ├─ 双曲线: x = ±a·cosh(t), y = b·sinh(t)
+        ├─ 抛物线: x = y²/(2p)
+        └─ 极坐标圆: ρ = 2r·cos(θ)
+
+Step 4: 绘制辅助线
+        ├─ 渐近线 (紫色虚线)
+        ├─ 准线 (绿色点划线)
+        └─ 切线/弦 (红色实线)
+
+Step 5: 标注关键点
+        ├─ 焦点 (金色填充 + 蓝色边框)
+        ├─ 顶点 (蓝色)
+        └─ 交点 (蓝色)
+
+Step 6: 导出 PNG (150 DPI, 白底)
+\end{verbatim}
+
+\subsection{参数方程绘制}
+
+所有曲线使用参数方程绘制，采样 1000 个点：
+
+\textbf{椭圆}：
+
+\begin{lstlisting}[language=Python]
+theta = np.linspace(0, 2 * np.pi, 1000)
+x = center[0] + a * np.cos(theta)
+y = center[1] + b * np.sin(theta)
+\end{lstlisting}
+
+\textbf{双曲线}（右支）：
+
+\begin{lstlisting}[language=Python]
+x_right = np.linspace(a, x_max, 500)
+y_right_pos = b * np.sqrt((x_right / a)**2 - 1)
+y_right_neg = -y_right_pos
+\end{lstlisting}
+
+\textbf{抛物线}：
+
+\begin{lstlisting}[language=Python]
+y_vals = np.linspace(y_min, y_max, 500)
+x_vals = y_vals**2 / (2 * p)
+\end{lstlisting}
+
+\subsection{坐标系自适应}
+
+\begin{lstlisting}[language=Python]
+def _get_plot_range(self, problem):
+    """根据题目参数确定合适的坐标范围"""
+    # 1. 根据曲线类型计算基础范围
+    # 2. 遍历所有关键点，扩展范围
+    for point in problem.points:
+        x_range = (min(x_range[0], point.x - margin),
+                   max(x_range[1], point.x + margin))
+    # 3. 确保正方形比例
+    max_span = max(x_span, y_span)
+\end{lstlisting}
+
+\subsection{配色方案}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lll}
+\toprule
+元素 & 颜色 & 色值 \\
+\midrule
+曲线 & 蓝色 & \#2E86AB \\
+直线/弦 & 红色 & \#E8451E \\
+焦点 & 金色填充 + 蓝色边框 & \#FFD700 / \#2E86AB \\
+渐近线 & 紫色虚线 & \#9B59B6 \\
+准线 & 绿色点划线 & \#27AE60 \\
+切线 & 橙色 & \#F39C12 \\
+\bottomrule
+\end{tabular}
+\caption{配色方案}
+\end{table}
+
+\section{LaTeX 渲染引擎}
+
+\subsection{设计目标}
+
+将 LaTeX 数学表达式转换为 Unicode 字符，实现在终端中直接显示数学符号。
+
+\subsection{转换规则}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lll}
+\toprule
+LaTeX 输入 & Unicode 输出 & 说明 \\
+\midrule
+\texttt{\textbackslash frac\{a\}\{b\}} & a/b & 分数 \\
+\texttt{x\^{}\{2\}} & x² & 上标 \\
+\texttt{x\_\{1\}} & x₁ & 下标 \\
+\texttt{\textbackslash sqrt\{x\}} & √x & 根号 \\
+\texttt{\textbackslash alpha, \textbackslash beta, \textbackslash theta} & α, β, θ & 希腊字母 \\
+\texttt{\textbackslash times, \textbackslash pm, \textbackslash leq} & ×, ±, ≤ & 运算符 \\
+\texttt{\textbackslash triangle} & △ & 几何符号 \\
+\bottomrule
+\end{tabular}
+\caption{LaTeX 到 Unicode 转换规则}
+\end{table}
+
+\subsection{实现原理}
+
+转换器使用正则表达式逐层处理 LaTeX 文本：
+
+\begin{lstlisting}[language=Python]
+def latex_to_unicode(text: str) -> str:
+    """将 LaTeX 数学表达式转换为 Unicode 终端显示"""
+    text = text.replace("$$", "")           # 移除块级定界符
+    text = text.replace("$", "")            # 移除行内定界符
+    text = re.sub(r'\\text\{([^}]*)\}', r'\1', text)  # \text{...}
+    text = _convert_fracs(text)              # \frac{a}{b}
+    text = _convert_sqrt(text)               # \sqrt{...}
+    text = _convert_superscript(text)        # ^{...}
+    text = _convert_subscript(text)          # _{...}
+    # 替换希腊字母、运算符...
+    return text.strip()
+\end{lstlisting}
+
+\begin{tipbox}
+对于 \texttt{\textbackslash frac\{\textbackslash frac\{a\}\{b\}\}\{c\}} 等嵌套结构，使用循环迭代处理（最多 20 次），每次替换最内层的 \texttt{\textbackslash frac\{...\}\{...\}}。
+\end{tipbox}
+
+\section{TUI 交互界面}
+
+\subsection{界面设计}
+
+TUI 基于 Textual 框架，参考 DeepSeek / Claude Code 的交互形式：
+
+\begin{itemize}
+    \item \textbf{Chat 风格输入}：用户在底部输入框输入自然语言
+    \item \textbf{可拖拽分栏}：左侧对话历史 + 右侧配图预览
+    \item \textbf{侧边栏}：显示所有快捷命令和题型说明
+    \item \textbf{暖色调主题}：cream (\#faf9f5) + coral (\#cc785c) 配色方案
+\end{itemize}
+
+\subsection{自然语言解析}
+
+\texttt{parse\_user\_input()} 函数解析用户输入：
+
+\begin{table}[h]
+\centering
+\begin{tabular}{ll}
+\toprule
+用户输入 & 解析结果 \\
+\midrule
+\texttt{椭圆 a=5 b=3} & \{topic: "ellipse", a: 5, b: 3, type: "basic"\} \\
+\texttt{抛物线 竞赛} & \{topic: "parabola", type: "random\_competition"\} \\
+\texttt{random} & \{topic: "random", type: "random"\} \\
+\bottomrule
+\end{tabular}
+\caption{自然语言解析示例}
+\end{table}
+
+\subsection{难度路由}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{ll}
+\toprule
+用户输入 & 映射 \\
+\midrule
+\texttt{基础} & basic \\
+\texttt{进阶} & chord \\
+\texttt{竞赛} / \texttt{压轴} / \texttt{难} & 自动从高难度题型中随机选择 \\
+\bottomrule
+\end{tabular}
+\caption{难度路由}
+\end{table}
+
+\section{测试与验证}
+
+\subsection{全题型测试}
+
+\texttt{test\_all\_types.py} 对所有 60 种题型进行自动化测试：
+
+\begin{enumerate}
+    \item 题目生成 — 不抛异常
+    \item 题干验证 — 非空、长度 > 20 字符
+    \item 解答验证 — 非空、长度 > 20 字符
+    \item 答案验证 — 非空
+    \item LaTeX 渲染 — 输出非空
+    \item 配图渲染 — 文件存在、大小 > 1KB
+    \item 关键点验证 — 至少 1 个关键点
+\end{enumerate}
+
+\subsection{测试结果}
+
+\begin{verbatim}
+总计: 60 种题型
+通过: 60 ✓
+失败: 0 ✗
+通过率: 100.0%
+\end{verbatim}
+
+\subsection{输出文件}
+
+\begin{verbatim}
+output/Question_YYYYMMDD_HHMMSS/
+├── diagram.png      # 配图 (42-98 KB, 150 DPI)
+├── problem.tex      # LaTeX 题干
+├── solution.tex     # LaTeX 解答
+└── problem.txt      # Unicode 纯文本
+\end{verbatim}
+
+\end{document}

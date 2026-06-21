@@ -8,18 +8,14 @@ Analytic Geometry Problem Generator — Terminal UI
 
 import os
 import re
-import sys
-import json
-import asyncio
-from pathlib import Path
+import random
 from datetime import datetime
 
 from textual.app import App, ComposeResult
 from textual.binding import Binding
-from textual.containers import Container, Horizontal, Vertical, ScrollableContainer
+from textual.containers import Horizontal, Vertical, ScrollableContainer
 from textual.widgets import (
     Header, Footer, Static, Input, RichLog, Button,
-    Label, DataTable, Markdown
 )
 
 # Divider replacement for older textual versions
@@ -39,7 +35,7 @@ from interactive_generator import (
     generate_polar_dynamic,
 )
 from diagram_renderer import DiagramRenderer
-from latex_render import latex_to_unicode, render_problem_text
+from latex_render import render_problem_text
 
 
 # ==================== DRAGGABLE SPLIT BAR ====================
@@ -86,7 +82,7 @@ HAIRLINE = "#e6dfd8"
 ACCENT_TEAL = "#5db8a6"
 ACCENT_AMBER = "#e8a55a"
 
-OUTPUT_DIR = "/root/analytic_geometry_generator/output"
+OUTPUT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "output")
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 
@@ -185,7 +181,6 @@ def parse_user_input(text: str) -> dict:
     # ---- 识别难度 ----
     if "竞赛" in text or "难" in text or "高级" in text or "压轴" in text:
         # 自动从高难度题型中随机选择
-        import random as _rand
         hard_types = {
             "ellipse": ["fixed_point", "area_opt", "ecc_range", "tangent", "third_def", "optical_property", "monge_circle", "apollonius"],
             "hyperbola": ["asymptote_angle", "area_opt", "focus_triangle", "optical_property", "monge_circle", "butterfly"],
@@ -193,10 +188,9 @@ def parse_user_input(text: str) -> dict:
             "polar": ["conic"],
         }
         if result["topic"] in hard_types:
-            result["problem_type"] = _rand.choice(hard_types[result["topic"]])
+            result["problem_type"] = random.choice(hard_types[result["topic"]])
     elif "进阶" in text or "中等" in text:
         # 自动从进阶题型中随机选择
-        import random as _rand2
         mid_types = {
             "ellipse": ["chord", "focus_triangle", "midpoint_chord", "focal_radius", "slope_product", "tangent_line", "second_def", "locus"],
             "hyperbola": ["chord", "focus_triangle", "midpoint_chord", "focal_radius", "second_def", "tangent_line", "slope_product", "locus", "equilateral_hyperbola"],
@@ -204,7 +198,7 @@ def parse_user_input(text: str) -> dict:
             "polar": ["line_circle", "focal_radius", "chord_ratio", "slope_product", "fixed_point", "conic_unified", "parametric"],
         }
         if result["topic"] in mid_types:
-            result["problem_type"] = _rand2.choice(mid_types[result["topic"]])
+            result["problem_type"] = random.choice(mid_types[result["topic"]])
 
     # ---- 自动推断题型 ----
     if result["topic"] and result["problem_type"] == "basic":
@@ -354,7 +348,6 @@ class GeometryTUI(App):
 
     # ---- 响应式状态 ----
     current_problem = reactive(None)
-    chat_history = reactive([])
 
     def compose(self) -> ComposeResult:
         """构建界面"""
@@ -615,10 +608,11 @@ class GeometryTUI(App):
         elif topic == "polar":
             return generate_polar_dynamic(
                 r=params.get("r"), problem_type=ptype)
+        else:
+            raise ValueError(f"未知题目类型: {topic}")
 
     def _generate_random(self):
         """随机生成一道题"""
-        import random
         topics = ["ellipse", "hyperbola", "parabola", "polar"]
         topic = random.choice(topics)
         ptype = random.choice(["basic", "chord"])
@@ -763,15 +757,6 @@ class GeometryTUI(App):
         """向下翻页"""
         chat = self.query_one("#chat")
         chat.scroll_down(page=True)
-
-    def on_key(self, event):
-        """处理鼠标滚轮事件"""
-        chat = self.query_one("#chat")
-        # 鼠标滚轮支持
-        if event.key == "ctrl+up":
-            chat.scroll_up(amount=3)
-        elif event.key == "ctrl+down":
-            chat.scroll_down(amount=3)
 
 
 # ==================== MAIN ====================

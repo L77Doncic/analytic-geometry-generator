@@ -600,7 +600,6 @@
 <div class="card">
 <h3>题目要求</h3>
 <ul>
-<li>结合 <strong>LLM 和智能体</strong>方法或工具</li>
 <li>根据用户指定<strong>知识点与难度</strong>，动态生成解析几何题目</li>
 <li>题目应能被<strong>证明或求解</strong></li>
 <li>包含格式严谨的 <strong>LaTeX 题干</strong></li>
@@ -613,7 +612,6 @@
 <h3>我们的方案</h3>
 <ul>
 <li>构建<strong>完整软件系统</strong>，覆盖 <strong>4 大知识点 × 60+ 种题型</strong></li>
-<li>LLM 参与<strong>架构设计、数学推导、代码生成</strong>全流程</li>
 <li><strong>参数方程</strong>精确绘图，1000 采样点，等比例坐标</li>
 <li><strong>TUI 交互界面</strong>，自然语言输入，难度自动路由</li>
 <li>全题型自动化测试，<strong>通过率 100%</strong></li>
@@ -1191,127 +1189,6 @@ if "竞赛" in text or "压轴" in text:
 
 
 
-<!-- ══ LLM — Dark tile ══ -->
-<section data-background-color="#272729" class="section-dark">
-<h2>LLM 辅助开发 — 参与环节与质量保证</h2>
-<div class="cols">
-<div class="col">
-<div class="card">
-<h3>AI 参与的 5 个环节</h3>
-<div class="steps">
-<div class="step"><div class="step-num" style="background:var(--blue-on-dark);">1</div><div class="step-content"><strong>架构设计</strong> — 模块划分(6 个核心模块)、数据模型(4 个 dataclass)、接口定义</div></div>
-<div class="step"><div class="step-num" style="background:var(--blue-on-dark);">2</div><div class="step-content"><strong>数学推导</strong> — 60 种题型的联立方程、韦达定理、面积公式、离心率范围</div></div>
-<div class="step"><div class="step-num" style="background:var(--blue-on-dark);">3</div><div class="step-content"><strong>代码生成</strong> — 每种题型的参数计算 + LaTeX 模板 + 解答生成</div></div>
-<div class="step"><div class="step-num" style="background:var(--blue-on-dark);">4</div><div class="step-content"><strong>UI 设计</strong> — TUI 布局、自然语言解析、配色方案</div></div>
-<div class="step"><div class="step-num" style="background:var(--blue-on-dark);">5</div><div class="step-content"><strong>测试验证</strong> — 全题型测试脚本、边界条件检查</div></div>
-</div>
-</div>
-</div>
-<div class="col">
-<div class="card">
-<h3>质量保证：三步闭环</h3>
-<div class="steps">
-<div class="step"><div class="step-num" style="background:var(--blue-on-dark);">1</div><div class="step-content"><strong>AI 生成</strong> — Claude Code 根据需求完成数学推导和代码实现</div></div>
-<div class="step"><div class="step-num" style="background:#e65100;">2</div><div class="step-content"><strong>人工验证</strong> — 检查联立方程系数、判别式、面积公式（发现过正负号错误）</div></div>
-<div class="step"><div class="step-num" style="background:#2e7d32;">3</div><div class="step-content"><strong>自动测试</strong> — 60 种题型全部执行，验证输出格式和配图生成</div></div>
-</div>
-<p style="font-size:0.5em;text-align:center;color:var(--body-muted);margin-top:4px;">AI 生成的内容不直接使用，每种题型都经过验证闭环</p>
-</div>
-<div class="card">
-<h3>AI 优势与局限</h3>
-<table style="font-size:0.6em;">
-<tr><th>优势</th><th>局限</th></tr>
-<tr><td>数学推导速度快</td><td>个别题型有正负号错误</td></tr>
-<tr><td>模式化代码生成</td><td>边界条件需人工检查</td></tr>
-<tr><td>LaTeX 模板自动生成</td><td>创造性构造题无法处理</td></tr>
-</table>
-<div style="margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,0.08);font-size:0.6em;display:flex;justify-content:space-between;align-items:center;">
-<span style="color:var(--body-muted);">单题型开发时间</span>
-<span><span style="text-decoration:line-through;color:var(--body-muted);">30-60 min</span> → <strong style="color:var(--blue-on-dark);">10-15 min</strong></span>
-</div>
-</div>
-</div>
-</div>
-</section>
-
-<section data-background-color="#272729" class="section-dark">
-<h2>AI 辅助实例 — 椭圆焦点弦</h2>
-<div class="cols">
-<div class="col">
-<div class="card">
-<h3>AI 的推导过程</h3>
-<div style="font-size:0.65em;line-height:1.7;text-align:left;">
-<p><strong>输入</strong>："生成椭圆焦点弦题，过左焦点斜率为 k 的直线与椭圆交于 P,Q"</p>
-<p><strong>AI 推导</strong>:</p>
-<ol>
-<li>直线: y=k(x+c)</li>
-<li>代入椭圆: x²/a² + k²(x+c)²/b² = 1</li>
-<li>整理: (b²+a²k²)x² + 2a²ck²x + (a²c²k²-a²b²) = 0</li>
-<li>判别式: Δ = (2a²ck²)² - 4(b²+a²k²)(a²c²k²-a²b²)</li>
-<li>韦达: x₁+x₂ = -2a²ck²/(b²+a²k²)</li>
-<li>弦长: |PQ| = √(1+k²)·|x₁-x₂|</li>
-</ol>
-</div>
-</div>
-</div>
-<div class="col">
-<div class="card">
-<h3>人工验证过程</h3>
-<div class="steps">
-<div class="step"><div class="step-num" style="background:#e65100;">1</div><div class="step-content"><strong>代入验算</strong> — 取 a=5, b=3, k=1，手算联立方程系数 A, B, C</div></div>
-<div class="step"><div class="step-num" style="background:#e65100;">2</div><div class="step-content"><strong>判别式检查</strong> — 确认 Δ ≥ 0，与 AI 结果对比</div></div>
-<div class="step"><div class="step-num" style="background:#e65100;">3</div><div class="step-content"><strong>弦长验证</strong> — 手算 |PQ| 与代码输出一致</div></div>
-<div class="step"><div class="step-num" style="background:#2e7d32;">4</div><div class="step-content"><strong>自动测试</strong> — 运行 test_all_types.py 确认可执行</div></div>
-</div>
-<p style="font-size:0.55em;color:var(--body-muted);margin-top:6px;">两者缺一不可：没有 AI，60 种题型逐一推导不现实；没有验证，数学错误会隐藏在代码中</p>
-</div>
-</div>
-</div>
-</section>
-
-<!-- ══ Claude Code 智能体 — Dark tile ══ -->
-<section data-background-color="#272729" class="section-dark">
-<h2>Claude Code — 真正的智能体</h2>
-<div class="cols">
-<div class="col">
-<div class="card">
-<h3>智能体工作流</h3>
-<div class="steps">
-<div class="step"><div class="step-num" style="background:var(--blue-on-dark);">1</div><div class="step-content"><strong>理解意图</strong> — 自然语言描述需求，如"实现椭圆蒙日圆题型"</div></div>
-<div class="step"><div class="step-num" style="background:var(--blue-on-dark);">2</div><div class="step-content"><strong>规划方案</strong> — 分析需修改的文件：generator、test、tui_app</div></div>
-<div class="step"><div class="step-num" style="background:var(--blue-on-dark);">3</div><div class="step-content"><strong>生成代码</strong> — 完成数学推导，生成 LaTeX 模板和 Python 函数</div></div>
-<div class="step"><div class="step-num" style="background:var(--blue-on-dark);">4</div><div class="step-content"><strong>运行测试</strong> — 自动执行 test_all_types.py，检查新题型</div></div>
-<div class="step"><div class="step-num" style="background:#e65100;">5</div><div class="step-content"><strong>修复错误</strong> — 分析失败原因，修改代码，重新测试直到通过</div></div>
-</div>
-</div>
-</div>
-<div class="col">
-<div class="card">
-<h3>为什么是"智能体"？</h3>
-<ul style="font-size:0.7em;">
-<li><strong>自主循环</strong> — 生成→测试→修复，不需人类干预</li>
-<li><strong>工具使用</strong> — 读写文件、执行命令、搜索代码</li>
-<li><strong>目标驱动</strong> — 理解需求后自主规划执行路径</li>
-<li><strong>错误恢复</strong> — 测试失败后自动分析和修复</li>
-</ul>
-</div>
-<div class="card">
-<h3>与 TUI 的区别</h3>
-<table style="font-size:0.62em;">
-<tr><th></th><th>TUI</th><th>Claude Code</th></tr>
-<tr><td>本质</td><td>用户接口</td><td>开发智能体</td></tr>
-<tr><td>解析方式</td><td>规则匹配</td><td>LLM 理解</td></tr>
-<tr><td>能力</td><td>关键词→函数调用</td><td>需求→推导→编码→测试</td></tr>
-</table>
-</div>
-<div class="card-parchment">
-<h3>核心价值</h3>
-<p style="font-size:0.65em;">每个题型的开发流程高度相似，智能体可以批量处理。60 种题型的开发，人类只需描述需求和验收结果。</p>
-</div>
-</div>
-</div>
-</section>
-
 <!-- ══ 演示 — Parchment tile ══ -->
 <section data-background-color="#f5f5f7">
 <h2>演示：批量生成与测试</h2>
@@ -1398,7 +1275,7 @@ if "竞赛" in text or "压轴" in text:
 
 <!-- ══ 总结 — Dark tile ══ -->
 <section data-background-color="#272729" class="section-dark">
-<div class="sec-num">05</div>
+<div class="sec-num">02</div>
 <h2>总结</h2>
 <p class="sec-desc">成果 · 技术栈 · 不足与改进</p>
 </section>
@@ -1414,7 +1291,7 @@ if "竞赛" in text or "压轴" in text:
 <div><div style="font-size:1.6em; font-weight:700; color:var(--blue-on-dark);">60</div><div style="font-size:0.55em; color:var(--body-muted);">种题型</div></div>
 <div><div style="font-size:1.6em; font-weight:700; color:var(--blue-on-dark);">100%</div><div style="font-size:0.55em; color:var(--body-muted);">测试通过</div></div>
 <div><div style="font-size:1.6em; font-weight:700; color:var(--blue-on-dark);">&lt;1s</div><div style="font-size:0.55em; color:var(--body-muted);">生成速度</div></div>
-<div><div style="font-size:1.6em; font-weight:700; color:var(--blue-on-dark);">Claude Code</div><div style="font-size:0.55em; color:var(--body-muted);">智能体驱动</div></div>
+<div><div style="font-size:1.6em; font-weight:700; color:var(--blue-on-dark);">1000</div><div style="font-size:0.55em; color:var(--body-muted);">采样点绘图</div></div>
 </div>
 </div>
 </div>
@@ -1423,21 +1300,12 @@ if "竞赛" in text or "压轴" in text:
 <ul style="font-size:0.7em;">
 <li><strong>参数方程精确绘图</strong> — 非贝塞尔近似，1000 采样点</li>
 <li><strong>LaTeX → Unicode</strong> — 实时终端渲染</li>
-<li><strong>Claude Code 智能体</strong> — 理解→规划→生成→测试→修复</li>
 <li><strong>可扩展架构</strong> — 新增题型只需添加函数</li>
+<li><strong>完整测试覆盖</strong> — 60 种题型全量自动化测试</li>
 </ul>
 </div>
 </div>
 <div class="col">
-<div class="card">
-<h3>LLM 与智能体结合</h3>
-<ul style="font-size:0.7em;">
-<li>LLM 参与<strong>架构设计、数学推导、代码生成、UI 设计、测试</strong>全流程</li>
-<li>人机协作模式：人类把控方向，AI 处理细节</li>
-<li>质量保证：<strong>AI 生成 → 人工验证 → 自动测试</strong>三步闭环</li>
-<li>Claude Code 智能体：自主完成推导→编码→测试→修复循环</li>
-</ul>
-</div>
 <div class="card">
 <h3>技术栈</h3>
 <table>
@@ -1446,7 +1314,6 @@ if "竞赛" in text or "压轴" in text:
 <tr><td>数值计算</td><td>NumPy</td></tr>
 <tr><td>绘图</td><td>Matplotlib (参数方程)</td></tr>
 <tr><td>TUI</td><td>Textual + Rich</td></tr>
-<tr><td>AI 辅助</td><td>Claude Code</td></tr>
 <tr><td>打包</td><td>PyInstaller</td></tr>
 </table>
 </div>

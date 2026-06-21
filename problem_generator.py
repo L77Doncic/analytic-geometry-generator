@@ -32,9 +32,9 @@ class ConicParams:
     rotation: float = 0.0  # 旋转角度(弧度)
 
     def __post_init__(self):
-        if self.c == 0:
+        if abs(self.c) < 1e-10:
             self.c = np.sqrt(abs(self.a**2 - self.b**2))
-        if self.e == 0 and self.c > 0:
+        if abs(self.e) < 1e-10 and self.c > 1e-10:
             self.e = self.c / self.a
 
 
@@ -494,7 +494,7 @@ class ProblemGenerator:
             f"又 $(|PF_1| - |PF_2|)^2 = |PF_1|^2 + |PF_2|^2 - 2|PF_1||PF_2|$\n\n"
             f"两式相减：$(2c)^2 - (2a)^2 = 2|PF_1||PF_2|(1 - \\cos{angle_deg}°)$\n\n"
             f"$4({c**2} - {a**2}) = 2|PF_1||PF_2| \\cdot (1 - \\frac{{1}}{{2}})$\n\n"
-            f"$|PF_1||PF_2| = \\frac{{4 \\cdot {b**2}}}{{1 - \\frac{{1}}{{2}}}} = {pf1_pf2:.4g}$\n\n"
+            f"$|PF_1||PF_2| = \\frac{{2 \\cdot {b**2}}}{{1 - \\frac{{1}}{{2}}}} = {pf1_pf2:.4g}$\n\n"
             f"(2) $S_{{\\triangle F_1PF_2}} = \\frac{{1}}{{2}} |PF_1||PF_2| \\sin{angle_deg}° = \\frac{{1}}{{2}} \\cdot {pf1_pf2:.4g} \\cdot \\frac{{\\sqrt{{3}}}}{{2}} = {triangle_area:.4g}$"
         )
 

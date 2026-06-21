@@ -134,8 +134,9 @@ class DiagramRenderer:
         if fill_color is None:
             fill_color = self.COLORS['point_fill']
 
-        # 焦点特殊处理
-        if point.label and ('F' in point.label):
+        # 焦点特殊处理 — 标签以 F 开头且第二位是数字或下标
+        if point.label and point.label.startswith('F') and (
+                len(point.label) == 1 or point.label[1] in '0123456789_'):
             color = self.COLORS['focus']
             fill_color = self.COLORS['focus_fill']
 
@@ -158,7 +159,10 @@ class DiagramRenderer:
         if color is None:
             color = self.COLORS['line']
 
-        x = np.linspace(x_range[0] - 2, x_range[1] + 2, 500)
+        if extend:
+            x = np.linspace(x_range[0] - 2, x_range[1] + 2, 500)
+        else:
+            x = np.linspace(x_range[0], x_range[1], 500)
 
         if line.b != 0:
             y = (-line.a * x - line.c) / line.b
@@ -169,12 +173,8 @@ class DiagramRenderer:
                        linestyle=linestyle, alpha=alpha, zorder=zorder)
             return
 
-        if extend:
-            ax.plot(x, y, color=color, linewidth=linewidth,
-                    linestyle=linestyle, alpha=alpha, zorder=zorder)
-        else:
-            ax.plot(x, y, color=color, linewidth=linewidth,
-                    linestyle=linestyle, alpha=alpha, zorder=zorder)
+        ax.plot(x, y, color=color, linewidth=linewidth,
+                linestyle=linestyle, alpha=alpha, zorder=zorder)
 
     def _plot_ellipse(self, ax: plt.Axes, params: ConicParams,
                       color: str = None, linewidth: float = 2,
@@ -200,6 +200,8 @@ class DiagramRenderer:
         if color is None:
             color = self.COLORS['curve']
 
+        cx, cy = params.center
+
         # 右支
         x_right = np.linspace(params.a, x_range[1] + 2, 500)
         y_right_pos = params.b * np.sqrt((x_right / params.a)**2 - 1)
@@ -210,23 +212,24 @@ class DiagramRenderer:
         y_left_pos = params.b * np.sqrt((x_left / params.a)**2 - 1)
         y_left_neg = -y_left_pos
 
-        ax.plot(x_right, y_right_pos, color=color, linewidth=linewidth,
+        ax.plot(cx + x_right, cy + y_right_pos, color=color, linewidth=linewidth,
                 alpha=alpha, zorder=zorder)
-        ax.plot(x_right, y_right_neg, color=color, linewidth=linewidth,
+        ax.plot(cx + x_right, cy + y_right_neg, color=color, linewidth=linewidth,
                 alpha=alpha, zorder=zorder)
-        ax.plot(x_left, y_left_pos, color=color, linewidth=linewidth,
+        ax.plot(cx + x_left, cy + y_left_pos, color=color, linewidth=linewidth,
                 alpha=alpha, zorder=zorder)
-        ax.plot(x_left, y_left_neg, color=color, linewidth=linewidth,
+        ax.plot(cx + x_left, cy + y_left_neg, color=color, linewidth=linewidth,
                 alpha=alpha, zorder=zorder)
 
     def _plot_hyperbola_asymptotes(self, ax: plt.Axes, params: ConicParams,
                                    x_range: Tuple[float, float] = (-10, 10),
                                    linewidth: float = 1.2, alpha: float = 0.6):
         """绘制双曲线渐近线"""
+        cx, cy = params.center
         slope = params.b / params.a
         x = np.linspace(x_range[0] - 2, x_range[1] + 2, 200)
-        y1 = slope * x
-        y2 = -slope * x
+        y1 = slope * (x - cx) + cy
+        y2 = -slope * (x - cx) + cy
 
         ax.plot(x, y1, color=self.COLORS['asymptote'], linewidth=linewidth,
                 linestyle='--', alpha=alpha, zorder=2, label='渐近线')
@@ -241,6 +244,7 @@ class DiagramRenderer:
         if color is None:
             color = self.COLORS['curve']
 
+        cx, cy = params.center
         p = 2 * params.a  # y² = 2px
 
         # 上半支
@@ -249,7 +253,7 @@ class DiagramRenderer:
 
         # 过滤掉太远的点
         mask = x_upper <= max(abs(y_range[0]), abs(y_range[1])) * 2
-        ax.plot(x_upper[mask], y_upper[mask], color=color, linewidth=linewidth,
+        ax.plot(cx + x_upper[mask], cy + y_upper[mask], color=color, linewidth=linewidth,
                 alpha=alpha, zorder=zorder)
 
     def _plot_polar_circle(self, ax: plt.Axes, r: float,
@@ -315,7 +319,9 @@ class DiagramRenderer:
 
         # 保存
         if output_path is None:
-            output_path = f"/root/analytic_geometry_generator/output/{problem.topic}_difficulty{problem.difficulty}.png"
+            _project_root = os.path.dirname(os.path.abspath(__file__))
+            output_path = os.path.join(_project_root, "output",
+                                       f"{problem.topic}_difficulty{problem.difficulty}.png")
 
         os.makedirs(os.path.dirname(output_path), exist_ok=True)
         fig.savefig(output_path, dpi=self.dpi, bbox_inches='tight',
@@ -329,15 +335,17 @@ class DiagramRenderer:
         params = problem.conic_params
         margin = 2
 
+        cx, cy = params.center
+
         if problem.conic_type == "ellipse":
-            x_range = (-params.a - margin, params.a + margin)
-            y_range = (-params.b - margin, params.b + margin)
+            x_range = (cx - params.a - margin, cx + params.a + margin)
+            y_range = (cy - params.b - margin, cy + params.b + margin)
         elif problem.conic_type == "hyperbola":
-            x_range = (-params.c - margin, params.c + margin)
-            y_range = (-params.b - margin * 2, params.b + margin * 2)
+            x_range = (cx - params.c - margin, cx + params.c + margin)
+            y_range = (cy - params.b - margin * 2, cy + params.b + margin * 2)
         elif problem.conic_type == "parabola":
-            x_range = (-margin, params.a * 4 + margin)
-            y_range = (-params.a * 3 - margin, params.a * 3 + margin)
+            x_range = (cx - margin, cx + params.a * 4 + margin)
+            y_range = (cy - params.a * 3 - margin, cy + params.a * 3 + margin)
         elif problem.conic_type == "polar":
             r = params.a
             x_range = (-margin, 2 * r + margin)

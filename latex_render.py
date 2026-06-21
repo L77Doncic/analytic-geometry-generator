@@ -51,9 +51,15 @@ OPERATOR_MAP = {
     r"\emptyset": "∅",
     r"\ldots": "…", r"\cdots": "⋯",
     r"\triangle": "△",
-    r"\circ": "°",
+    r"\circ": "∘",  # 函数复合（ring operator），度数由 ^\circ 处理
     r"\star": "★",
     r"\diamond": "◇",
+    r"\angle": "∠",
+    r"\perp": "⊥",
+    r"\parallel": "∥",
+    r"\sim": "∼",
+    r"\cong": "≅",
+    r"\odot": "⊙",
 }
 
 SUPERSCRIPT_MAP = {
@@ -119,6 +125,10 @@ def latex_to_unicode(text: str) -> str:
     text = text.replace(r"\right|", "|")
     text = text.replace(r"\left\{", "{")
     text = text.replace(r"\right\}", "}")
+
+    # 度数符号：^\circ → °（两种写法）
+    text = text.replace(r"^{\circ}", "°")
+    text = text.replace(r"^\circ", "°")
 
     # 替换希腊字母
     for latex, unicode_char in GREEK_MAP.items():

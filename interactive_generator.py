@@ -237,7 +237,7 @@ def _ellipse_focus_triangle(a, b, c, e, params, angle_deg):
     F2 = Point(c, 0, "F_2")
     angle_rad = np.radians(angle_deg)
 
-    pf1_pf2 = 2 * b**2 / (1 - np.cos(angle_rad))
+    pf1_pf2 = 2 * b**2 / (1 + np.cos(angle_rad))
     triangle_area = 0.5 * pf1_pf2 * np.sin(angle_rad)
 
     problem_latex = (
@@ -1272,7 +1272,14 @@ def _hyperbola_chord(a, b, c, e, params, k):
     B_coeff = 2 * a**2 * c * k**2
     C_coeff = -(a**2 * c**2 * k**2 + a**2 * b**2)
 
+    # 安全检查：斜率不能等于渐近线斜率 (k = ±b/a)
+    if abs(A_coeff) < 1e-10:
+        raise ValueError(f"斜率 k={k} 等于渐近线斜率 ±b/a=±{b/a:.4g}，直线与双曲线无两个交点")
+
     disc = B_coeff**2 - 4 * A_coeff * C_coeff
+    if disc < 0:
+        raise ValueError(f"判别式 Δ={disc:.4g} < 0，直线与双曲线无实交点")
+
     x1 = (-B_coeff + np.sqrt(disc)) / (2 * A_coeff)
     x2 = (-B_coeff - np.sqrt(disc)) / (2 * A_coeff)
     y1 = k * (x1 - c)
@@ -1663,7 +1670,7 @@ def _hyperbola_slope_product(a, b, c, e, params):
 
 
 def _hyperbola_ecc_range(a, b, c, e, params):
-    """双曲线离心率范围问题"""
+    """双曲线离心率范围问题 — 存在点P使∠F₁PF₂=90°"""
     F1 = Point(-c, 0, "F_1")
     F2 = Point(c, 0, "F_2")
 
@@ -1673,36 +1680,37 @@ def _hyperbola_ecc_range(a, b, c, e, params):
         f"若双曲线上存在点 $P$ 使得 $\\angle F_1PF_2 = 90°$，求离心率 $e$ 的取值范围。"
     )
 
-    # ∠F₁PF₂ = 90° → |PF₁|² + |PF₂|² = 4c²
-    # ||PF₁| - |PF₂|| = 2a
-    # (|PF₁|-|PF₂|)² = 4a² = |PF₁|² + |PF₂|² - 2|PF₁||PF₂|
-    # 4a² = 4c² - 2|PF₁||PF₂|
-    # |PF₁||PF₂| = 2(c²-a²) = 2b²
-    # 又 |PF₁|² + |PF₂|² = 4c², |PF₁||PF₂| = 2b²
-    # |PF₁|, |PF₂| 是 t² - (|PF₁|+|PF₂|)t + 2b² = 0 的根
-    # 要使实根存在: (|PF₁|+|PF₂|)² ≥ 8b²
-    # |PF₁|+|PF₂| ≥ 2√(2b²) = 2b√2
-    # 又 ||PF₁|-|PF₂|| = 2a → |PF₁|+|PF₂| ≥ 2a
-    # 需要 2a ≥ 2b√2 即 a ≥ b√2 即 a² ≥ 2b² = 2(c²-a²)
-    # 3a² ≥ 2c² → e² ≤ 3/2 → e ≤ √(3/2)
-    # 又 e > 1
-    # 所以 1 < e ≤ √(3/2)
-
-    ecc_max = np.sqrt(1.5)
+    # 正确推导：
+    # 设 m = |PF₁|, n = |PF₂|
+    # 由双曲线定义：|m - n| = 2a
+    # 由 ∠F₁PF₂ = 90°：m² + n² = 4c²
+    # (m-n)² = m²+n²-2mn = 4c²-2mn = 4a²
+    # → mn = 2b²
+    # m, n 是 t² - (m+n)t + 2b² = 0 的两正根
+    # 由 m²+n² = 4c² 和 mn = 2b²：
+    #   (m+n)² = m²+n²+2mn = 4c²+4b² = 4(c²+b²)
+    #   m+n = 2√(c²+b²) — 这是确定值，不是自由变量
+    # 判别式条件：(m+n)² ≥ 8b²
+    #   4(c²+b²) ≥ 8b² → c² ≥ b² → a²+b² ≥ b² → a² ≥ 0 — 恒成立
+    # 正根条件：m = √(c²+b²)+a > 0（恒成立）
+    #           n = √(c²+b²)-a > 0 → c²+b² > a² → c > a → e > 1
+    # 结论：对任意 e > 1 的双曲线，都存在满足条件的点P
 
     solution_latex = (
         f"**解：**\n\n"
         f"设 $|PF_1| = m$，$|PF_2| = n$。\n\n"
-        f"由双曲线定义：$|m - n| = 2a$\n\n"
-        f"由 $\\angle F_1PF_2 = 90°$：$m^2 + n^2 = 4c^2$\n\n"
-        f"$(m-n)^2 = m^2 + n^2 - 2mn = 4c^2 - 2mn$\n\n"
-        f"$4a^2 = 4c^2 - 2mn$，解得 $mn = 2b^2$\n\n"
-        f"$m$, $n$ 是方程 $t^2 - (m+n)t + 2b^2 = 0$ 的两正根。\n\n"
-        f"需 $(m+n)^2 \\geq 8b^2$，即 $m+n \\geq 2b\\sqrt{{2}}$。\n\n"
-        f"又 $|m-n| = 2a$，故 $m+n \\geq 2a$（当 $mn$ 最小时取等）。\n\n"
-        f"需 $2a \\geq 2b\\sqrt{{2}}$，即 $a^2 \\geq 2b^2 = 2(c^2-a^2)$\n\n"
-        f"$3a^2 \\geq 2c^2$，即 $e^2 \\leq \\frac{{3}}{{2}}$，$e \\leq \\sqrt{{\\frac{{3}}{{2}}}} = {ecc_max:.4g}$\n\n"
-        f"又 $e > 1$，故 $e \\in \\left(1, \\sqrt{{\\frac{{3}}{{2}}}}\\right]$"
+        f"由双曲线定义：$|m - n| = 2a$ ……①\n\n"
+        f"由 $\\angle F_1PF_2 = 90°$：$m^2 + n^2 = 4c^2$ ……②\n\n"
+        f"①² = ② - 2mn：$4a^2 = 4c^2 - 2mn$，解得 $mn = 2b^2$\n\n"
+        f"由②和 $mn = 2b^2$：$(m+n)^2 = m^2+n^2+2mn = 4c^2+4b^2 = 4(c^2+b^2)$\n\n"
+        f"故 $m+n = 2\\sqrt{{c^2+b^2}}$（确定值）\n\n"
+        f"$m$, $n$ 是方程 $t^2 - 2\\sqrt{{c^2+b^2}} \\cdot t + 2b^2 = 0$ 的两根。\n\n"
+        f"判别式 $\\Delta = 4(c^2+b^2) - 8b^2 = 4(c^2-b^2) = 4a^2 > 0$（恒成立）\n\n"
+        f"两根：$m = \\sqrt{{c^2+b^2}} + a > 0$，$n = \\sqrt{{c^2+b^2}} - a$\n\n"
+        f"需 $n > 0$：$\\sqrt{{c^2+b^2}} > a$ → $c^2+b^2 > a^2$ → $c^2 > 0$（恒成立）\n\n"
+        f"由于 $c > a$（双曲线 $e > 1$），$n = \\sqrt{{c^2+b^2}} - a > \\sqrt{{a^2}} - a = 0$ 恒成立。\n\n"
+        f"**结论**：对任意双曲线（$e > 1$），都存在点 $P$ 使 $\\angle F_1PF_2 = 90°$。\n\n"
+        f"$e$ 的取值范围为 $(1, +\\infty)$。"
     )
 
     return Problem(
@@ -1710,7 +1718,7 @@ def _hyperbola_ecc_range(a, b, c, e, params):
         topic="双曲线", difficulty=3,
         problem_latex=problem_latex, solution_latex=solution_latex,
         conic_params=params, points=[F1, F2], conic_type="hyperbola",
-        answer=f"e ∈ (1, √(3/2)] = (1, {ecc_max:.4g}]"
+        answer=f"e ∈ (1, +∞)"
     )
 
 
@@ -2167,7 +2175,7 @@ def _parabola_focal_radius(p, params, F):
     V = Point(0, 0, "O")
 
     problem_latex = (
-        f"已知抛物线 $C$: $y^2 = {2*p}x$，焦点 $F({p//2}, 0)$。\n\n"
+        f"已知抛物线 $C$: $y^2 = {2*p}x$，焦点 $F({p/2:.4g}, 0)$。\n\n"
         f"点 $P$ 在抛物线上。\n\n"
         f"(1) 求 $|PF|$ 的最小值；\n\n"
         f"(2) 设 $P(x_0, y_0)$，用 $x_0$ 表示 $|PF|$；\n\n"
@@ -2265,7 +2273,7 @@ def _parabola_slope_product(p, params, F):
     problem_latex = (
         f"已知抛物线 $C$: $y^2 = {2*p}x$，顶点为 $O$。\n\n"
         f"过 $O$ 作两条互相垂直的弦 $OA$ 和 $OB$（$A$, $B$ 在抛物线上）。\n\n"
-        f"(1) 设 $A(y_1^2/{2*p}, y_1)$，$B(y_2^2/{2*p}, y_2)$，证明 $y_1 y_2 = -{p**2}$；\n\n"
+        f"(1) 设 $A(y_1^2/{2*p}, y_1)$，$B(y_2^2/{2*p}, y_2)$，证明 $y_1 y_2 = -{4*p**2}$；\n\n"
         f"(2) 求直线 $AB$ 是否过定点。"
     )
 
@@ -2397,7 +2405,7 @@ def _parabola_ecc_range(p, params, F):
     V = Point(0, 0, "O")
 
     problem_latex = (
-        f"已知抛物线 $C$: $y^2 = {2*p}x$，焦点 $F({p//2}, 0)$。\n\n"
+        f"已知抛物线 $C$: $y^2 = {2*p}x$，焦点 $F({p/2:.4g}, 0)$。\n\n"
         f"过 $F$ 作直线 $l$ 交抛物线于 $A$, $B$ 两点。\n\n"
         f"(1) 若 $|AB| = {4*p}$，求直线 $l$ 的斜率；\n\n"
         f"(2) 求 $\\frac{{1}}{{|AF|}} + \\frac{{1}}{{|BF|}}$ 的值。"
@@ -2511,7 +2519,7 @@ def _parabola_monge_circle(p, params, F):
     directrix = Line(1, 0, p / 2, "x = -\\frac{p}{2}")
 
     problem_latex = (
-        f"已知抛物线 $C$: $y^2 = {2*p}x$，焦点 $F\\left({p//2}, 0\\right)$，准线 $l$: $x = -{p//2}$。\n\n"
+        f"已知抛物线 $C$: $y^2 = {2*p}x$，焦点 $F\\left({p/2:.4g}, 0\\right)$，准线 $l$: $x = -{p/2:.4g}$。\n\n"
         f"设 $l_1$、$l_2$ 为抛物线 $C$ 的两条互相垂直的切线，交于点 $P$。\n\n"
         f"(1) 设 $l_1$ 的斜率为 $k$（$k \\neq 0$），求 $l_1$ 的方程；\n\n"
         f"(2) 设 $l_2$ 的斜率为 $-\\frac{{1}}{{k}}$，求 $l_1$ 与 $l_2$ 的交点 $P$ 的坐标；\n\n"
@@ -2789,7 +2797,7 @@ def generate_parabola_dynamic(p=None, problem_type="basic", slope=None):
         p = np.random.choice([2, 4, 6, 8])
     validate_parabola(p)
 
-    p_half = p // 2
+    p_half = p / 2
     params = ConicParams(a=p_half, b=0, c=p_half)
     F = Point(p_half, 0, "F")
 
@@ -2849,7 +2857,7 @@ def _parabola_basic(p, params, F):
         f"**解：**\n\n"
         f"(1) $p={p}$，开口向右。\n\n"
         f"$$y^2 = {2*p}x$$\n\n"
-        f"(2) 焦点 $F({p//2}, 0)$，准线 $x = -{p//2}$。"
+        f"(2) 焦点 $F({p/2:.4g}, 0)$，准线 $x = -{p/2:.4g}$。"
     )
 
     return Problem(
@@ -2893,7 +2901,7 @@ def _parabola_chord(p, params, F, k):
 
     solution_latex = (
         f"**解：**\n\n"
-        f"抛物线 $y^2 = {2*p}x$，焦点 $F({p//2}, 0)$。\n\n"
+        f"抛物线 $y^2 = {2*p}x$，焦点 $F({p/2:.4g}, 0)$。\n\n"
         f"(1) 焦点弦公式 $|PQ| = \\frac{{2p}}{{\\sin^2\\theta}} = {chord_formula:.4g}$\n\n"
         f"(2) 原点到直线距离 $d = {dist_O:.4g}$，$S = {area:.4g}$"
     )
@@ -2918,9 +2926,9 @@ def _parabola_property(p, params, F):
 
     solution_latex = (
         f"**证明：**\n\n"
-        f"设 $P(x_1,y_1)$，$Q(x_2,y_2)$，则 $|PF| = x_1+{p//2}$，$|QF| = x_2+{p//2}$。\n\n"
+        f"设 $P(x_1,y_1)$，$Q(x_2,y_2)$，则 $|PF| = x_1+{p/2:.4g}$，$|QF| = x_2+{p/2:.4g}$。\n\n"
         f"焦点弦性质：$x_1 x_2 = \\frac{{p^2}}{{4}} = {p**2//4}$。\n\n"
-        f"$\\frac{{1}}{{|PF|}} + \\frac{{1}}{{|QF|}} = \\frac{{x_1+x_2+p}}{{x_1x_2 + \\frac{{p(x_1+x_2)}}{{2}} + \\frac{{p^2}}{{4}}}} = \\frac{{2}}{{p}} = \\frac{{1}}{{{p//2}}}$"
+        f"$\\frac{{1}}{{|PF|}} + \\frac{{1}}{{|QF|}} = \\frac{{x_1+x_2+p}}{{x_1x_2 + \\frac{{p(x_1+x_2)}}{{2}} + \\frac{{p^2}}{{4}}}} = \\frac{{2}}{{p}} = \\frac{{1}}{{{p/2:.4g}}}$"
     )
 
     return Problem(
@@ -2951,7 +2959,7 @@ def _parabola_archimedes(p, params, F):
         f"为抛物线上两个不同的点。\n\n"
         f"过 $A$、$B$ 分别作抛物线的切线，两切线交于点 $P$。\n\n"
         f"(1) 证明: 点 $P$ 的坐标为 $\\left(\\frac{{y_1 y_2}}{{{2*p}}}, \\frac{{y_1+y_2}}{{2}}\\right)$；\n\n"
-        f"(2) 若弦 $AB$ 过焦点 $F({p//2}, 0)$，求 $\\triangle PAB$ 面积的最小值；\n\n"
+        f"(2) 若弦 $AB$ 过焦点 $F({p/2:.4g}, 0)$，求 $\\triangle PAB$ 面积的最小值；\n\n"
         f"(3) 证明: $\\triangle PAB$ 的面积 $= \\frac{{|y_1-y_2|^3}}{{{8*p}}}$。"
     )
 
@@ -2974,9 +2982,9 @@ def _parabola_archimedes(p, params, F):
         f"联立: $\\frac{{p}}{{y_1}}x + \\frac{{y_1}}{{2}} = \\frac{{p}}{{y_2}}x + \\frac{{y_2}}{{2}}$\n\n"
         f"$p x (\\frac{{1}}{{y_1}} - \\frac{{1}}{{y_2}}) = \\frac{{y_2-y_1}}{{2}}$\n\n"
         f"$x_P = \\frac{{y_1 y_2}}{{2p}}$，$y_P = \\frac{{p}}{{y_1}} \\cdot \\frac{{y_1 y_2}}{{2p}} + \\frac{{y_1}}{{2}} = \\frac{{y_1+y_2}}{{2}}$\n\n"
-        f"(2) 当 $AB$ 过焦点 $F({p//2}, 0)$ 时，由焦点弦性质: $y_1 y_2 = -{p**2}$\n\n"
-        f"$x_P = \\frac{{y_1 y_2}}{{2p}} = \\frac{{-{p**2}}}{{2 \\cdot {p}}} = -{p//2}$\n\n"
-        f"即 $P$ 在准线 $x = -{p//2}$ 上。\n\n"
+        f"(2) 当 $AB$ 过焦点 $F({p/2:.4g}, 0)$ 时，由焦点弦性质: $y_1 y_2 = -{p**2}$\n\n"
+        f"$x_P = \\frac{{y_1 y_2}}{{2p}} = \\frac{{-{p**2}}}{{2 \\cdot {p}}} = -{p/2:.4g}$\n\n"
+        f"即 $P$ 在准线 $x = -{p/2:.4g}$ 上。\n\n"
         f"$|y_1-y_2|^2 = (y_1+y_2)^2 - 4y_1 y_2 = (y_1+y_2)^2 + {4*p**2}$\n\n"
         f"当 $y_1+y_2 = 0$（即 $y_1 = -y_2 = {p}$）时，$|y_1-y_2| = {2*p}$ 最小。\n\n"
         f"$S_{{min}} = \\frac{{({2*p})^3}}{{{8*p}}} = \\frac{{{8*p**3}}}{{{8*p}}} = {S_min}$\n\n"
@@ -3004,7 +3012,7 @@ def _parabola_fixed_point(p, params, F):
     V = Point(0, 0, "O")
 
     problem_latex = (
-        f"已知抛物线 $C$: $y^2 = {2*p}x$，焦点为 $F({p//2}, 0)$，准线 $l$: $x = -{p//2}$。\n\n"
+        f"已知抛物线 $C$: $y^2 = {2*p}x$，焦点为 $F({p/2:.4g}, 0)$，准线 $l$: $x = -{p/2:.4g}$。\n\n"
         f"过 $F$ 作直线交抛物线于 $A$、$B$ 两点。\n\n"
         f"(1) 以 $AB$ 为直径作圆，证明: 该圆与准线 $l$ 相切；\n\n"
         f"(2) 设 $A(x_1,y_1)$，$B(x_2,y_2)$，证明: $y_1 y_2 = -{p**2}$（定值）；\n\n"
@@ -3015,17 +3023,17 @@ def _parabola_fixed_point(p, params, F):
     solution_latex = (
         f"**解：**\n\n"
         f"(1) 设 $A(x_1,y_1)$，$B(x_2,y_2)$。\n\n"
-        f"由抛物线定义: $|AF| = x_1 + {p//2}$，$|BF| = x_2 + {p//2}$\n\n"
+        f"由抛物线定义: $|AF| = x_1 + {p/2:.4g}$，$|BF| = x_2 + {p/2:.4g}$\n\n"
         f"以 $AB$ 为直径的圆的圆心 $M$ 的横坐标: $x_M = \\frac{{x_1+x_2}}{{2}}$\n\n"
         f"圆的半径 $R = \\frac{{|AB|}}{{2}} = \\frac{{(x_1+x_2)+{p}}}{{2}} = \\frac{{x_1+x_2+{p}}}{{2}}$\n\n"
-        f"$M$ 到准线的距离 $= x_M + {p//2} = \\frac{{x_1+x_2}}{{2}} + {p//2} = \\frac{{x_1+x_2+{p}}}{{2}} = R$\n\n"
+        f"$M$ 到准线的距离 $= x_M + {p/2:.4g} = \\frac{{x_1+x_2}}{{2}} + {p/2:.4g} = \\frac{{x_1+x_2+{p}}}{{2}} = R$\n\n"
         f"故圆与准线相切。\n\n"
-        f"(2) 设 $AB$ 方程: $x = my + {p//2}$，代入 $y^2 = {2*p}x$:\n\n"
+        f"(2) 设 $AB$ 方程: $x = my + {p/2:.4g}$，代入 $y^2 = {2*p}x$:\n\n"
         f"$y^2 - {2*p}my - {p**2} = 0$\n\n"
         f"由韦达定理: $y_1 y_2 = -{p**2}$（定值）\n\n"
         f"(3) $M\\left(\\frac{{x_1+x_2}}{{2}}, \\frac{{y_1+y_2}}{{2}}\\right)$\n\n"
-        f"过 $M$ 作 $x$ 轴平行线: $y = \\frac{{y_1+y_2}}{{2}}$，交准线 $x = -{p//2}$ 于 $N\\left(-{p//2}, \\frac{{y_1+y_2}}{{2}}\\right)$\n\n"
-        f"设 $A$、$B$ 对应焦半径为 $r_1 = x_1 + {p//2}$，$r_2 = x_2 + {p//2}$。\n\n"
+        f"过 $M$ 作 $x$ 轴平行线: $y = \\frac{{y_1+y_2}}{{2}}$，交准线 $x = -{p/2:.4g}$ 于 $N\\left(-{p/2:.4g}, \\frac{{y_1+y_2}}{{2}}\\right)$\n\n"
+        f"设 $A$、$B$ 对应焦半径为 $r_1 = x_1 + {p/2:.4g}$，$r_2 = x_2 + {p/2:.4g}$。\n\n"
         f"由 $y_1 y_2 = -{p**2}$，$|AF| = r_1$，$|BF| = r_2$，\n\n"
         f"利用焦半径公式和三角形面积关系，可证 $NF$ 平分 $\\angle AFB$ 的外角。  $\\square$"
     )
